@@ -39,6 +39,8 @@ namespace BoltFetch.Models
 
         public void UpdateParallelLimit(int limit)
         {
+            // Note: SemaphoreSlim doesn't support resizing. 
+            // We create a new one for FUTURE tasks. Existing ones will finish.
             _semaphore = new SemaphoreSlim(limit);
         }
 
@@ -214,16 +216,19 @@ namespace BoltFetch.Models
                                 int read;
                                 bytesDownloadedPerSegment[segmentIndex] = existingPartSize;
 
-                                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
-                                {
-                                    await fileStream.WriteAsync(buffer, 0, read, cancellationToken);
-                                    bytesDownloadedPerSegment[segmentIndex] += read;
-                                    
-                                    // Periodic reporting update
-                                    progress.BytesDownloaded = bytesDownloadedPerSegment.Sum();
-                                    
-                                    if (SpeedLimitKB > 0) await Throttle(progress.BytesDownloaded, progress.Stopwatch.Elapsed.TotalMilliseconds);
-                                }
+                                    while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+                                    {
+                                        await fileStream.WriteAsync(buffer, 0, read, cancellationToken);
+                                        bytesDownloadedPerSegment[segmentIndex] += read;
+                                        
+                                        // Periodic reporting update
+                                        progress.AddBytes(read);
+                                        
+                                        if (SpeedLimitKB > 0) 
+                                        {
+                                            await ThrottleInstant(read, SpeedLimitKB, cancellationToken);
+                                        }
+                                    }
                             }
                         }
                     }
@@ -235,9 +240,7 @@ namespace BoltFetch.Models
             {
                 while (!tasks.All(t => t.IsCompleted))
                 {
-                    progress.BytesDownloaded = bytesDownloadedPerSegment.Sum();
-                    var elapsed = progress.Stopwatch.Elapsed.TotalSeconds;
-                    if (elapsed > 0) progress.SpeedBytesPerSecond = (long)(progress.BytesDownloaded / elapsed);
+                    progress.UpdateInstantSpeed();
                     ProgressChanged?.Invoke(item.Id, progress);
                     await Task.Delay(500, cancellationToken);
                 }
@@ -277,26 +280,30 @@ namespace BoltFetch.Models
             while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
             {
                 await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken);
-                progress.BytesDownloaded += bytesRead;
+                progress.AddBytes(bytesRead);
 
-                if (SpeedLimitKB > 0) await Throttle(progress.BytesDownloaded, progress.Stopwatch.Elapsed.TotalMilliseconds);
+                if (SpeedLimitKB > 0) 
+                {
+                    await ThrottleInstant(bytesRead, SpeedLimitKB, cancellationToken);
+                }
 
                 if ((DateTime.Now - lastReportTime).TotalMilliseconds > 500)
                 {
-                    var elapsedSeconds = progress.Stopwatch.Elapsed.TotalSeconds;
-                    if (elapsedSeconds > 0) progress.SpeedBytesPerSecond = (long)(progress.BytesDownloaded / elapsedSeconds);
+                    progress.UpdateInstantSpeed();
                     ProgressChanged?.Invoke(itemId, progress);
                     lastReportTime = DateTime.Now;
                 }
             }
         }
 
-        private async Task Throttle(long totalRead, double actualTimeMs)
+        private async Task ThrottleInstant(int bytesRead, int limitKB, CancellationToken token)
         {
-            var expectedTimeMs = (totalRead / (double)(SpeedLimitKB * 1024)) * 1000;
-            if (expectedTimeMs > actualTimeMs)
+            // Simple delay based on current read chunk to aim for global limit
+            // This is per-segment, so it's not perfect but react instantly to 'limitKB' changes
+            double expectedTimeMs = (bytesRead / (double)(limitKB * 1024)) * 1000;
+            if (expectedTimeMs > 1) // Only delay if it matters
             {
-                await Task.Delay((int)(expectedTimeMs - actualTimeMs));
+                await Task.Delay((int)expectedTimeMs, token);
             }
         }
     }
@@ -309,17 +316,45 @@ namespace BoltFetch.Models
         public long SpeedBytesPerSecond { get; set; }
         public Stopwatch Stopwatch { get; } = Stopwatch.StartNew();
 
+        // For Instant Speed (Sliding Window)
+        private long _recentBytes = 0;
+        private Stopwatch _recentStopwatch = Stopwatch.StartNew();
+        private readonly object _lock = new object();
+
+        public void AddBytes(int count)
+        {
+            lock (_lock)
+            {
+                BytesDownloaded += count;
+                _recentBytes += count;
+            }
+        }
+
+        public void UpdateInstantSpeed()
+        {
+            lock (_lock)
+            {
+                double elapsed = _recentStopwatch.Elapsed.TotalSeconds;
+                if (elapsed >= 0.5) // Every 500ms
+                {
+                    SpeedBytesPerSecond = (long)(_recentBytes / elapsed);
+                    _recentBytes = 0;
+                    _recentStopwatch.Restart();
+                }
+            }
+        }
+
         public double ProgressPercentage => TotalBytes > 0 ? (double)BytesDownloaded / TotalBytes * 100 : 0;
-        public string ProgressText => $"{ProgressPercentage:F1}%";
-        public string SpeedText => $"{FormatSize(SpeedBytesPerSecond)}/s";
+        public string ProgressText => $"{Math.Min(ProgressPercentage, 100):F1}%";
+        public string SpeedText => BytesDownloaded >= TotalBytes ? "-" : $"{FormatSize(SpeedBytesPerSecond)}/s";
         
         public string ETAText
         {
             get
             {
-                if (SpeedBytesPerSecond <= 0) return "--:--";
+                if (BytesDownloaded >= TotalBytes) return "Done";
+                if (SpeedBytesPerSecond <= 100) return "--:--"; // Too slow to estimate
                 var remainingBytes = TotalBytes - BytesDownloaded;
-                if (remainingBytes <= 0) return "Done";
                 var secondsRemaining = (double)remainingBytes / SpeedBytesPerSecond;
                 var timeSpan = TimeSpan.FromSeconds(secondsRemaining);
                 if (timeSpan.TotalHours >= 1) return $"{(int)timeSpan.TotalHours}h {timeSpan.Minutes}m";
