@@ -1,4 +1,4 @@
-# BoltFetch Downloader
+# <img src="Resources/logo.png" width="100" align="center" /> BoltFetch Downloader
 
 BoltFetch Downloader is a modern and efficient download manager built with C# and WPF.
 
@@ -12,7 +12,7 @@ BoltFetch Downloader is a modern and efficient download manager built with C# an
 
 ### v1.2.0
 - **BoltFetch Downloader** is currently in development.
-- **Bu sürümde sadece GoFile kullanılıyor.** (GoFile is the only supported provider in this version).
+- Only **GoFile** is supported in this version. (Portable version: Standalone .exe).
 
 ## License
 
