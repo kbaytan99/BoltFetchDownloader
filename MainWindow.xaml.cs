@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using BoltFetch.Models;
+using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using Forms = System.Windows.Forms;
 
@@ -101,21 +102,22 @@ namespace BoltFetch
                 if (System.Windows.Clipboard.ContainsText())
                 {
                     string text = System.Windows.Clipboard.GetText().Trim();
-                    if (text.StartsWith("https://gofile.io/d/") && text != _lastCapturedLink)
+                    if (string.IsNullOrEmpty(text) || text == _lastCapturedLink) return;
+
+                    // Support multiple links separated by spaces, newlines, etc.
+                    var links = Regex.Matches(text, @"https://gofile\.io/d/[a-zA-Z0-9]+")
+                                     .Cast<Match>()
+                                     .Select(m => m.Value)
+                                     .Distinct()
+                                     .ToList();
+
+                    if (links.Any())
                     {
                         _lastCapturedLink = text;
-                        LinkTextBox.Text = text;
-                        
-                        // Auto-Fetch like JDownloader
-                        FetchFiles(text);
+                        FetchFilesBatch(links);
 
-                        // Visual feedback & Notification
+                        // Visual feedback
                         LinkBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(58, 190, 249));
-                        if (_notifyIcon != null)
-                        {
-                            _notifyIcon.ShowBalloonTip(3000, "Link Yakalandı! 🚀", $"Yeni GoFile linki otomatik olarak listeye ekleniyor: {text}", Forms.ToolTipIcon.Info);
-                        }
-                        
                         System.Threading.Tasks.Task.Delay(1000).ContinueWith(_ => Dispatcher.Invoke(() => LinkBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(51, 65, 85))));
                     }
                 }
@@ -141,57 +143,75 @@ namespace BoltFetch
 
         private async void FetchButton_Click(object sender, RoutedEventArgs e)
         {
-            await FetchFiles(LinkTextBox.Text.Trim());
+            var text = LinkTextBox.Text.Trim();
+            var links = Regex.Matches(text, @"https://gofile\.io/d/[a-zA-Z0-9]+")
+                             .Cast<Match>()
+                             .Select(m => m.Value)
+                             .Distinct()
+                             .ToList();
+
+            if (links.Any())
+            {
+                await FetchFilesBatch(links);
+            }
+            else
+            {
+                System.Windows.MessageBox.Show("Please enter valid GoFile link(s).");
+            }
         }
 
-        private async Task FetchFiles(string url)
+        private async Task FetchFilesBatch(List<string> urls)
         {
-            if (string.IsNullOrEmpty(url)) return;
+            Dispatcher.Invoke(() => FetchButton.IsEnabled = false);
 
-            var folderCode = url.Split('/').LastOrDefault();
-            if (string.IsNullOrEmpty(folderCode))
-            {
-                System.Windows.MessageBox.Show("Invalid GoFile URL.");
-                return;
-            }
-
-            Dispatcher.Invoke(() => {
-                FetchButton.IsEnabled = false;
-                FileItems.Clear();
-            });
+            int totalAdded = 0;
+            long totalSize = 0;
 
             try
             {
-                var items = await _goFileService.GetFolderContents(folderCode);
-                Dispatcher.Invoke(() => {
-                    foreach (var goItem in items)
-                    {
-                        var displayItem = new FileDisplayItem(goItem);
-                        
-                        // Proactively scan for existing progress
-                        var tempProgress = new DownloadProgress { FileName = goItem.Name, TotalBytes = goItem.Size };
-                        _downloadManager.UpdateProgressFromExistingParts(goItem, _settings.DownloadPath, tempProgress);
-                        
-                        displayItem.ProgressValue = tempProgress.ProgressPercentage;
-                        displayItem.ProgressText = tempProgress.ProgressText;
-                        
-                        if (displayItem.ProgressValue >= 100)
-                        {
-                            displayItem.Status = "Completed";
-                            displayItem.ProgressValue = 100;
-                        }
-                        else if (displayItem.ProgressValue > 0)
-                        {
-                            displayItem.Status = "Stopped";
-                        }
+                foreach (var url in urls)
+                {
+                    var folderCode = url.Split('/').LastOrDefault();
+                    if (string.IsNullOrEmpty(folderCode)) continue;
 
-                        FileItems.Add(displayItem);
-                    }
-                });
+                    var items = await _goFileService.GetFolderContents(folderCode);
+                    Dispatcher.Invoke(() => {
+                        foreach (var goItem in items)
+                        {
+                            if (FileItems.Any(i => i.Source.Id == goItem.Id)) continue; // Avoid duplicates
+
+                            var displayItem = new FileDisplayItem(goItem);
+                            var tempProgress = new DownloadProgress { FileName = goItem.Name, TotalBytes = goItem.Size };
+                            _downloadManager.UpdateProgressFromExistingParts(goItem, _settings.DownloadPath, tempProgress);
+                            
+                            displayItem.ProgressValue = tempProgress.ProgressPercentage;
+                            displayItem.ProgressText = tempProgress.ProgressText;
+                            
+                            if (displayItem.ProgressValue >= 100)
+                            {
+                                displayItem.Status = "Completed";
+                                displayItem.ProgressValue = 100;
+                            }
+                            else if (displayItem.ProgressValue > 0)
+                            {
+                                displayItem.Status = "Stopped";
+                            }
+
+                            FileItems.Add(displayItem);
+                            totalAdded++;
+                            totalSize += goItem.Size;
+                        }
+                    });
+                }
+
+                if (totalAdded > 0)
+                {
+                    ShowNotification($"{totalAdded} Files Found! 🚀", $"{totalAdded} files ({FormatSizeGB(totalSize)}) added to the list.");
+                }
             }
             catch (Exception ex)
             {
-                Dispatcher.Invoke(() => System.Windows.MessageBox.Show($"Error fetching folder: {ex.Message}"));
+                Dispatcher.Invoke(() => System.Windows.MessageBox.Show($"Error fetching folder content: {ex.Message}"));
             }
             finally
             {
@@ -200,6 +220,14 @@ namespace BoltFetch
                     UpdateSummary();
                 });
             }
+        }
+
+        private void ShowNotification(string title, string message)
+        {
+            Dispatcher.Invoke(() => {
+                var notify = new NotificationWindow(title, message);
+                notify.Show();
+            });
         }
 
         private async void DownloadButton_Click(object sender, RoutedEventArgs e)

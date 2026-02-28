@@ -1,0 +1,27 @@
+<Window x:Class="BoltFetch.NotificationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Notification" Height="100" Width="350"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ShowInTaskbar="False" Topmost="True" WindowStartupLocation="Manual">
+    <Border Background="#1E293B" CornerRadius="12" BorderBrush="#3ABEF9" BorderThickness="1.5">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" ShadowDepth="0" Color="#3ABEF9" Opacity="0.3"/>
+        </Border.Effect>
+        <Grid Margin="15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Viewbox Height="40" Width="40" Margin="0,0,15,0">
+                <TextBlock Text="🚀" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </Viewbox>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock x:Name="TitleText" Text="New Files Added!" FontSize="16" FontWeight="Bold" Foreground="#3ABEF9"/>
+                <TextBlock x:Name="MessageText" Text="3 files (5.2 GB) added to the list." FontSize="13" Foreground="#E2E8F0" Margin="0,4,0,0" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

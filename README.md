@@ -4,14 +4,22 @@ BoltFetch Downloader is a modern and efficient download manager built with C# an
 
 ## Features
 
-- High-speed downloads.
+- High-speed multi-segmented downloads.
 - Clean and intuitive user interface.
+- **Multi-link support**: Detect and add multiple links from clipboard.
+- **Custom Notifications**: JDownloader-style popup notifications.
 - Easy to manage download tasks.
 
 ## Release Notes
 
+### v1.3.0
+- Added **Multi-link support** (Regex detection in clipboard).
+- Added **Custom Notification System** (Bottom-right popup).
+- Improved link parsing logic.
+- UI improvements and version bump.
+
 ### v1.2.0
-- **BoltFetch Downloader** is currently in development.
+- **BoltFetch Downloader** early development.
 - Only **GoFile** is supported in this version. (Portable version: Standalone .exe).
 
 ## License
