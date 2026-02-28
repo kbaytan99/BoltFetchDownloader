@@ -144,6 +144,12 @@ namespace BoltFetch
         private async void FetchButton_Click(object sender, RoutedEventArgs e)
         {
             var text = LinkTextBox.Text.Trim();
+            if (string.IsNullOrEmpty(text))
+            {
+                System.Windows.MessageBox.Show("Please enter valid GoFile link(s).");
+                return;
+            }
+
             var links = Regex.Matches(text, @"https://gofile\.io/d/[a-zA-Z0-9]+")
                              .Cast<Match>()
                              .Select(m => m.Value)
@@ -153,11 +159,18 @@ namespace BoltFetch
             if (links.Any())
             {
                 await FetchFilesBatch(links);
+                LinkTextBox.Text = string.Empty; // Clear after successful add
             }
             else
             {
                 System.Windows.MessageBox.Show("Please enter valid GoFile link(s).");
             }
+        }
+
+        private void AddButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Just trigger fetch as it handles links in the text box
+            FetchButton_Click(sender, e);
         }
 
         private async Task FetchFilesBatch(List<string> urls)
@@ -242,10 +255,45 @@ namespace BoltFetch
             DownloadButton.IsEnabled = false;
             var path = _settings.DownloadPath;
 
-            var tasks = selectedItems.Select(item => StartDownload(item, path));
-            await Task.WhenAll(tasks);
+            // Mark selected items as ready for the queue
+            foreach (var item in selectedItems)
+            {
+                if (item.Status == "Pending" || item.Status == "Stopped" || item.Status == "Cancelled" || item.Status == "Error")
+                {
+                    item.Status = "Queued";
+                }
+            }
+
+            _ = ProcessQueue(); // Start the background processor
             
             DownloadButton.IsEnabled = true;
+        }
+
+        private async Task ProcessQueue()
+        {
+            // Simple loop to fill slots
+            while (true)
+            {
+                var queuedItems = FileItems.Where(i => i.Status == "Queued").ToList();
+                if (!queuedItems.Any()) break;
+
+                // Check how many we can start
+                int activeCount = FileItems.Count(i => i.Status == "Downloading...");
+                int slotsAvailable = _settings.MaxParallelDownloads - activeCount;
+
+                if (slotsAvailable <= 0)
+                {
+                    await Task.Delay(1000);
+                    continue;
+                }
+
+                foreach (var item in queuedItems.Take(slotsAvailable))
+                {
+                    _ = StartDownload(item, _settings.DownloadPath);
+                }
+
+                await Task.Delay(1000);
+            }
         }
 
         private async Task StartDownload(FileDisplayItem item, string path)
@@ -346,6 +394,7 @@ namespace BoltFetch
                     item.ProgressText = progress.ProgressText;
                     item.SpeedText = progress.SpeedText;
                     item.ETAText = progress.ETAText;
+                    item.SourceProgress = progress; // Save reference for summary
                 }
                 UpdateSummary();
             });
@@ -365,6 +414,7 @@ namespace BoltFetch
                     item.ETAText = "Done";
                 }
                 UpdateSummary();
+                _ = ProcessQueue(); // Check for next items in queue
             });
         }
 
@@ -405,13 +455,22 @@ namespace BoltFetch
             int finished = FileItems.Count(i => i.Status == "Completed");
 
             TotalSizeText.Text = FormatSizeGB(totalBytes);
-            QueuedCountText.Text = queued.ToString();
+            QueuedCountText.Text = (queued + FileItems.Count(i => i.Status == "Queued")).ToString();
             ActiveCountText.Text = active.ToString();
             FinishedCountText.Text = finished.ToString();
             
-            // Calculate Total ETA based on the longest ETA among active downloads
-            var activeETAs = FileItems.Where(i => i.Status == "Downloading...").Select(i => i.ETAText).ToList();
-            OverallETAText.Text = activeETAs.Any() ? activeETAs.Max() : "--:--";
+            // Calculate Total Speed
+            long totalSpeedBytes = FileItems.Where(i => i.Status == "Downloading...").Sum(i => i.SourceProgress?.SpeedBytesPerSecond ?? 0);
+            TotalSpeedText.Text = FormatSpeed(totalSpeedBytes);
+        }
+
+        private string FormatSpeed(long bytes)
+        {
+            string[] units = { "B", "KB", "MB", "GB", "TB" };
+            double size = bytes;
+            int unitIndex = 0;
+            while (size >= 1024 && unitIndex < units.Length - 1) { size /= 1024; unitIndex++; }
+            return $"{size:F2} {units[unitIndex]}/s";
         }
 
         private string FormatSizeGB(long bytes)
@@ -454,6 +513,8 @@ namespace BoltFetch
 
         public bool IsCompleted => Status == "Completed";
         public bool IsNotCompleted => !IsCompleted;
+
+        public DownloadProgress SourceProgress { get; set; }
 
         public FileDisplayItem(GoFileItem source) => Source = source;
 

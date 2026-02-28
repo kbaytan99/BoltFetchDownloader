@@ -69,15 +69,25 @@
                     <ColumnDefinition Width="50"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 
                 <TextBlock Text="🔗" FontSize="18" Foreground="#3ABEF9" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                 
                 <TextBox x:Name="LinkTextBox" Grid.Column="1" VerticalContentAlignment="Center" BorderThickness="0"
                          Background="Transparent" Foreground="White" FontSize="14" Padding="5,0"
-                         Text="https://gofile.io/d/ClLRLC" CaretBrush="#3ABEF9"/>
+                         Text="" CaretBrush="#3ABEF9"/>
 
-                <Button x:Name="FetchButton" Grid.Column="2" Content="FETCH FILES" Width="130" Margin="4" 
+                <Button x:Name="AddButton" Grid.Column="2" Content="+" Width="35" Height="35" Margin="2" 
+                        Click="AddButton_Click" Background="#334155" Foreground="#3ABEF9" FontWeight="Bold" FontSize="18" ToolTip="Add links manually">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="17.5"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+                <Button x:Name="FetchButton" Grid.Column="3" Content="FETCH FILES" Width="130" Margin="4" 
                         Click="FetchButton_Click" Background="#3ABEF9" Foreground="#0F172A" FontWeight="Bold" FontSize="12">
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -211,8 +221,8 @@
                     </Grid>
                 </StackPanel>
                 <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Right">
-                    <TextBlock Text="TURBO SEGMENTS" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
-                    <TextBlock x:Name="OverallETAText" Text="--:--" FontSize="22" FontWeight="SemiBold" Margin="0,5,0,0" HorizontalAlignment="Right" Foreground="#F8FAFC"/>
+                    <TextBlock Text="TOTAL SPEED" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    <TextBlock x:Name="TotalSpeedText" Text="0 KB/s" FontSize="22" FontWeight="SemiBold" Margin="0,5,0,0" HorizontalAlignment="Right" Foreground="#F8FAFC"/>
                 </StackPanel>
             </Grid>
         </Border>
