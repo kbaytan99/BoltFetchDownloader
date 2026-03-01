@@ -33,6 +33,7 @@ namespace BoltFetch.Services
             AppDomain.CurrentDomain.BaseDirectory, "smart_profile.json");
 
         private static SmartProfile _profile = new();
+        private static readonly object _lock = new object();
 
         #region Category Rules
         private static readonly Dictionary<string, string[]> ExtensionMap = new()
@@ -122,11 +123,15 @@ namespace BoltFetch.Services
         /// </summary>
         public static int GetOptimalSegments(long fileSize, string serverDomain, int defaultSegments)
         {
-            var domainRecords = _profile.History
-                .Where(r => r.ServerDomain == serverDomain && r.FileSize > 0)
-                .OrderByDescending(r => r.Timestamp)
-                .Take(20)
-                .ToList();
+            List<DownloadRecord> domainRecords;
+            lock (_lock)
+            {
+                domainRecords = _profile.History
+                    .Where(r => r.ServerDomain == serverDomain && r.FileSize > 0)
+                    .OrderByDescending(r => r.Timestamp)
+                    .Take(20)
+                    .ToList();
+            }
 
             if (domainRecords.Count < 3)
                 return defaultSegments; // Not enough data, use default
@@ -163,13 +168,16 @@ namespace BoltFetch.Services
         public static void LogDownload(DownloadRecord record)
         {
             record.Timestamp = DateTime.UtcNow;
-            _profile.History.Add(record);
+            lock (_lock)
+            {
+                _profile.History.Add(record);
 
-            // Keep only last 200 records to save space
-            if (_profile.History.Count > 200)
-                _profile.History = _profile.History.OrderByDescending(r => r.Timestamp).Take(200).ToList();
+                // Keep only last 200 records to save space
+                if (_profile.History.Count > 200)
+                    _profile.History = _profile.History.OrderByDescending(r => r.Timestamp).Take(200).ToList();
 
-            Save();
+                Save();
+            }
         }
 
         /// <summary>
@@ -177,13 +185,16 @@ namespace BoltFetch.Services
         /// </summary>
         public static (int TotalDownloads, double TotalGB, string TopCategory) GetStats()
         {
-            var total = _profile.History.Count;
-            var totalGB = _profile.History.Sum(r => r.FileSize) / (1024.0 * 1024 * 1024);
-            var topCat = _profile.History
-                .GroupBy(r => r.Category)
-                .OrderByDescending(g => g.Count())
-                .FirstOrDefault()?.Key ?? "—";
-            return (total, totalGB, topCat);
+            lock (_lock)
+            {
+                var total = _profile.History.Count;
+                var totalGB = _profile.History.Sum(r => r.FileSize) / (1024.0 * 1024 * 1024);
+                var topCat = _profile.History
+                    .GroupBy(r => r.Category)
+                    .OrderByDescending(g => g.Count())
+                    .FirstOrDefault()?.Key ?? "—";
+                return (total, totalGB, topCat);
+            }
         }
 
         /// <summary>
@@ -191,8 +202,11 @@ namespace BoltFetch.Services
         /// </summary>
         public static void LearnCategoryOverride(string keyword, string category)
         {
-            _profile.UserCategoryOverrides[keyword.ToLowerInvariant()] = category;
-            Save();
+            lock (_lock)
+            {
+                _profile.UserCategoryOverrides[keyword.ToLowerInvariant()] = category;
+                Save();
+            }
         }
 
         #region Persistence

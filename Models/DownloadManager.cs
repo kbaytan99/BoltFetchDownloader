@@ -159,15 +159,26 @@ namespace BoltFetch.Models
             var destinationPath = Path.Combine(destinationFolder, item.Name);
             
             // Single stream case
-            if (File.Exists(destinationPath)) existing = new FileInfo(destinationPath).Length;
-            
-            // Segmented case (check parts)
-            // Even if the user changes SegmentsPerFile later, we scan up to a reasonable limit or the current setting
-            // To be safe, we check at least up to the current SegmentsPerFile
-            for (int i = 0; i < Math.Max(SegmentsPerFile, 32); i++) 
+            if (File.Exists(destinationPath)) 
             {
-                var partPath = destinationPath + ".part" + (i + 1);
-                if (File.Exists(partPath)) existing += new FileInfo(partPath).Length;
+                existing = new FileInfo(destinationPath).Length;
+            }
+            
+            // Segmented case (check state file)
+            var statePath = destinationPath + ".downloading.state";
+            if (File.Exists(statePath))
+            {
+                try
+                {
+                    var stateJson = File.ReadAllText(statePath);
+                    var state = JsonConvert.DeserializeObject<List<int>>(stateJson);
+                    if (state != null)
+                    {
+                        const long CHUNK_SIZE = 4 * 1024 * 1024;
+                        existing = (long)state.Count * CHUNK_SIZE;
+                    }
+                }
+                catch { }
             }
 
             progress.BytesDownloaded = Math.Min(existing, item.Size);
@@ -399,8 +410,14 @@ namespace BoltFetch.Models
                 }
             }, cancellationToken);
 
-            await Task.WhenAll(downloadTasks);
-            writeChannel.Writer.Complete();
+            try
+            {
+                await Task.WhenAll(downloadTasks);
+            }
+            finally
+            {
+                writeChannel.Writer.Complete();
+            }
             await writerTask;
         }
 

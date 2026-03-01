@@ -461,7 +461,13 @@ namespace BoltFetch
                 var downloadingPath = filePath + ".downloading";
                 if (File.Exists(downloadingPath)) File.Delete(downloadingPath);
                 
-                // Clean up fragments (.part files)
+                var statePath = filePath + ".downloading.state";
+                if (File.Exists(statePath)) File.Delete(statePath);
+                
+                var oldStatePath = filePath + ".state";
+                if (File.Exists(oldStatePath)) File.Delete(oldStatePath);
+                
+                // Clean up old fragments (.part files)
                 for (int i = 1; i <= 64; i++) // Scan a bit higher just in case
                 {
                     var partPath = filePath + ".part" + i;
