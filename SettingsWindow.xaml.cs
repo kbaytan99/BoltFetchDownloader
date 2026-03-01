@@ -17,6 +17,16 @@ namespace BoltFetch
             SpeedLimitTextBox.Text = Settings.SpeedLimitKB.ToString();
             SegmentsTextBox.Text = Settings.SegmentsPerFile.ToString();
             ParallelTextBox.Text = Settings.MaxParallelDownloads.ToString();
+            
+            // Set initial language selection visually
+            foreach (System.Windows.Controls.ComboBoxItem item in LanguageComboBox.Items)
+            {
+                if (item.Tag?.ToString() == Settings.Language)
+                {
+                    item.IsSelected = true;
+                    break;
+                }
+            }
         }
 
         private void Browse_Click(object sender, RoutedEventArgs e)
@@ -39,6 +49,12 @@ namespace BoltFetch
                 Settings.SpeedLimitKB = speed;
                 Settings.SegmentsPerFile = segments;
                 Settings.MaxParallelDownloads = Math.Max(1, parallel); // Ensure at least 1
+                
+                if (LanguageComboBox.SelectedItem is System.Windows.Controls.ComboBoxItem selectedItem)
+                {
+                    Settings.Language = selectedItem.Tag?.ToString() ?? "en";
+                }
+                
                 DialogResult = true;
                 Close();
             }

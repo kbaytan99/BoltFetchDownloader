@@ -1,0 +1,52 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <!-- Ana Ekran / Main Window -->
+    <system:String x:Key="Loc_AppTitle">BoltFetch Downloader</system:String>
+    <system:String x:Key="Loc_SettingsBtn">Settings</system:String>
+    
+    <!-- Tablo Basliklari / DataGrid Headers -->
+    <system:String x:Key="Loc_ColName">Name</system:String>
+    <system:String x:Key="Loc_ColSize">Size</system:String>
+    <system:String x:Key="Loc_ColProgress">Progress</system:String>
+    <system:String x:Key="Loc_ColSpeed">Speed</system:String>
+    <system:String x:Key="Loc_ColETA">ETA</system:String>
+    <system:String x:Key="Loc_ColStatus">Status</system:String>
+    <system:String x:Key="Loc_ColControls">Controls</system:String>
+
+    <!-- Tablo Satir İci Butonlar / Row Controls -->
+    <system:String x:Key="Loc_RowStart">Start ▶</system:String>
+    <system:String x:Key="Loc_RowStop">Stop ⏹</system:String>
+    <system:String x:Key="Loc_RowOpen">Open 📂</system:String>
+    <system:String x:Key="Loc_RowRemove">Remove ✖</system:String>
+    <system:String x:Key="Loc_RowDelete">Delete 🗑️</system:String>
+
+    <!-- Ozet Alani / Summary Area -->
+    <system:String x:Key="Loc_SumTotalSize">TOTAL SIZE</system:String>
+    <system:String x:Key="Loc_SumQueued">QUEUED</system:String>
+    <system:String x:Key="Loc_SumActive">ACTIVE</system:String>
+    <system:String x:Key="Loc_SumFinished">FINISHED</system:String>
+    <system:String x:Key="Loc_SumTotalSpeed">TOTAL SPEED</system:String>
+    
+    <!-- Alt Butonlar / Footer Actions -->
+    <system:String x:Key="Loc_FooterParallel">Active Parallel Slots:</system:String>
+    <system:String x:Key="Loc_FooterVersion">Version:</system:String>
+    <system:String x:Key="Loc_FooterFolder">Download Folder:</system:String>
+    <system:String x:Key="Loc_BtnSelectAll">Select All</system:String>
+    <system:String x:Key="Loc_BtnRemoveAll">Remove All</system:String>
+    <system:String x:Key="Loc_BtnDeleteAll">Delete All</system:String>
+    <system:String x:Key="Loc_BtnStartSelected">START SELECTED</system:String>
+
+    <!-- Tepsi Menusu / Tray Menu -->
+    <system:String x:Key="Loc_TraySettings">Settings</system:String>
+    <system:String x:Key="Loc_TrayAbout">About</system:String>
+    <system:String x:Key="Loc_TrayRestore">Restore</system:String>
+    <system:String x:Key="Loc_TrayExit">Exit</system:String>
+
+    <!-- Hakkinda Ekrani / About Window -->
+    <system:String x:Key="Loc_AboutTitle">About BoltFetch</system:String>
+    <system:String x:Key="Loc_AboutDesc">A lightning-fast, highly optimized multi-provider download manager built on modern WPF architecture.</system:String>
+    <system:String x:Key="Loc_AboutBtnOK">OK</system:String>
+
+</ResourceDictionary>

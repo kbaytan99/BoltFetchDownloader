@@ -9,7 +9,7 @@ namespace BoltFetch.Services
     public class DownloadOrchestrator
     {
         private readonly DownloadManager _downloadManager;
-        private readonly UserSettings _settings;
+        private UserSettings _settings;
         private bool _isProcessing = false;
 
         public event Action? StateChanged;
@@ -17,6 +17,11 @@ namespace BoltFetch.Services
         public DownloadOrchestrator(DownloadManager manager, UserSettings settings)
         {
             _downloadManager = manager;
+            _settings = settings;
+        }
+
+        public void UpdateSettings(UserSettings settings)
+        {
             _settings = settings;
         }
 

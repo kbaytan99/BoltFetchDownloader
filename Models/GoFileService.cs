@@ -38,8 +38,21 @@ namespace BoltFetch.Models
 
         public async Task InitializeAsync()
         {
-            await FetchWebsiteToken();
-            await FetchGuestToken();
+            int maxRetries = 2;
+            for (int i = 0; i < maxRetries; i++)
+            {
+                try
+                {
+                    await FetchWebsiteToken();
+                    await FetchGuestToken();
+                    return;
+                }
+                catch
+                {
+                    if (i == maxRetries - 1) throw;
+                    await Task.Delay(1500); // Wait on failure
+                }
+            }
         }
 
         private async Task FetchWebsiteToken()
@@ -54,13 +67,12 @@ namespace BoltFetch.Models
                 }
                 else
                 {
-                    // Fallback or handle error - let's try another regex if format changed
-                    _websiteToken = "4fd6sg89d7s6"; // Current known token as fallback
+                    _websiteToken = "4fd6sg89d7s6";
                 }
             }
             catch
             {
-                _websiteToken = "4fd6sg89d7s6"; // Fallback
+                _websiteToken = "4fd6sg89d7s6";
             }
         }
 
@@ -68,7 +80,6 @@ namespace BoltFetch.Models
         {
             try
             {
-                // 1. Create guest account
                 var response = await _httpClient.PostAsync("https://api.gofile.io/accounts", null);
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
@@ -80,7 +91,6 @@ namespace BoltFetch.Models
                     throw new Exception("GoFile API returned an empty token.");
                 }
 
-                // 2. Validate/Sync account session (Crucial for 401 errors)
                 var validateRequest = new HttpRequestMessage(HttpMethod.Get, "https://api.gofile.io/accounts/website");
                 validateRequest.Headers.Add("Authorization", $"Bearer {_guestToken}");
                 var validateResponse = await _httpClient.SendAsync(validateRequest);
@@ -88,47 +98,82 @@ namespace BoltFetch.Models
             }
             catch (Exception ex)
             {
-                throw new Exception("Failed to create or validate guest session on GoFile.", ex);
+                throw new Exception($"Failed to create or validate guest session on GoFile. ({ex.Message})", ex);
             }
         }
 
         public async Task<List<GoFileItem>> GetFolderContents(string folderCode)
         {
-            if (string.IsNullOrEmpty(_guestToken)) await InitializeAsync();
-
-            var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.gofile.io/contents/{folderCode}?contentFilter=&page=1&pageSize=1000&sortField=name&sortDirection=1");
-            request.Headers.Add("Authorization", $"Bearer {_guestToken}");
-            request.Headers.Add("X-Website-Token", _websiteToken);
-
-            var response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var json = JObject.Parse(content);
-            
-            var items = new List<GoFileItem>();
-            var children = json["data"]?["children"];
-
-            if (children != null)
+            int maxRetries = 2;
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
-                foreach (var child in children.Values())
+                try
                 {
-                    if (child["type"]?.ToString() == "file")
+                    if (string.IsNullOrEmpty(_guestToken)) await InitializeAsync();
+
+                    var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.gofile.io/contents/{folderCode}?contentFilter=&page=1&pageSize=1000&sortField=name&sortDirection=1");
+                    request.Headers.Add("Authorization", $"Bearer {_guestToken}");
+                    request.Headers.Add("X-Website-Token", _websiteToken);
+
+                    var response = await _httpClient.SendAsync(request);
+                    
+                    if ((int)response.StatusCode == 401 || (int)response.StatusCode == 403)
                     {
-                        items.Add(new GoFileItem
-                        {
-                            Id = child["id"]?.ToString() ?? string.Empty,
-                            Name = child["name"]?.ToString() ?? string.Empty,
-                            Size = (long?)(child["size"] ?? 0) ?? 0,
-                            DownloadLink = child["link"]?.ToString() ?? string.Empty,
-                            Md5 = child["md5"]?.ToString() ?? string.Empty,
-                            Token = _guestToken
-                        });
+                        _guestToken = "";
+                        _websiteToken = "";
+                        if (attempt < maxRetries) continue;
                     }
+
+                    response.EnsureSuccessStatusCode();
+
+                    var content = await response.Content.ReadAsStringAsync();
+                    var json = JObject.Parse(content);
+                    
+                    if (json["status"]?.ToString() != "ok")
+                    {
+                        if (json["status"]?.ToString() == "error-auth" && attempt < maxRetries)
+                        {
+                            _guestToken = "";
+                            _websiteToken = "";
+                            continue;
+                        }
+                        throw new Exception($"API Error: {json["status"]?.ToString()}");
+                    }
+                    
+                    var items = new List<GoFileItem>();
+                    var children = json["data"]?["children"];
+
+                    if (children != null)
+                    {
+                        foreach (var child in children.Values())
+                        {
+                            if (child["type"]?.ToString() == "file")
+                            {
+                                items.Add(new GoFileItem
+                                {
+                                    Id = child["id"]?.ToString() ?? string.Empty,
+                                    Name = child["name"]?.ToString() ?? string.Empty,
+                                    Size = (long?)(child["size"] ?? 0) ?? 0,
+                                    DownloadLink = child["link"]?.ToString() ?? string.Empty,
+                                    Md5 = child["md5"]?.ToString() ?? string.Empty,
+                                    Token = _guestToken
+                                });
+                            }
+                        }
+                    }
+
+                    return items;
+                }
+                catch (Exception ex)
+                {
+                    if (attempt == maxRetries)
+                    {
+                        throw new Exception($"GoFile retrieval failed after {maxRetries} attempts: {ex.Message}");
+                    }
+                    await Task.Delay(1500 * attempt);
                 }
             }
-
-            return items;
+            return new List<GoFileItem>();
         }
     }
 

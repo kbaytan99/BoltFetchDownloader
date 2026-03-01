@@ -10,6 +10,7 @@ namespace BoltFetch.Models
         public int SpeedLimitKB { get; set; } = 0; // 0 = No limit
         public int MaxParallelDownloads { get; set; } = 3;
         public int SegmentsPerFile { get; set; } = 4;
+        public string Language { get; set; } = "en";
     }
 
     public static class SettingsService

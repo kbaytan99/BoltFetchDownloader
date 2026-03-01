@@ -5,11 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BoltFetch"
         mc:Ignorable="d"
-        Title="BoltFetch Downloader" Height="750" Width="1100"
+        Title="BoltFetch Downloader" Height="850" Width="1200"
         MinHeight="650" MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
         Icon="Resources/logo.png"
-        Background="#0F172A" Foreground="#E2E8F0"
+        Foreground="#E2E8F0"
         WindowStyle="SingleBorderWindow">
+    <Window.Background>
+        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+            <GradientStop Color="#0F172A" Offset="0"/>
+            <GradientStop Color="#060913" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Background>
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="35" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
@@ -179,9 +186,29 @@
                         </Trigger>
                     </Style.Triggers>
                 </Style>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Padding" Value="10,0"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridCell">
+                                <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                    <ContentPresenter VerticalAlignment="Center" SnapsToDevicePixels="True"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
             </DataGrid.Resources>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True" FontSize="14">
+                <DataGridTextColumn Header="{DynamicResource Loc_ColName}" Binding="{Binding Name}" Width="*" IsReadOnly="True" FontSize="14">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
@@ -189,8 +216,8 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="Auto" MinWidth="100" IsReadOnly="True" FontSize="13"/>
-                <DataGridTemplateColumn Header="Progress" Width="1.5*">
+                <DataGridTextColumn Header="{DynamicResource Loc_ColSize}" Binding="{Binding SizeFormatted}" Width="Auto" MinWidth="100" IsReadOnly="True" FontSize="13"/>
+                <DataGridTemplateColumn Header="{DynamicResource Loc_ColProgress}" Width="1.5*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Grid Margin="10,0">
@@ -213,37 +240,47 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Speed" Binding="{Binding SpeedText}" Width="Auto" MinWidth="110" IsReadOnly="True" FontSize="13"/>
-                <DataGridTextColumn Header="ETA" Binding="{Binding ETAText}" Width="Auto" MinWidth="90" IsReadOnly="True" FontSize="13"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="Auto" MinWidth="140" IsReadOnly="True" FontSize="13" Foreground="#AAA"/>
-                <DataGridTemplateColumn Header="Controls" Width="340">
+                <DataGridTextColumn Header="{DynamicResource Loc_ColSpeed}" Binding="{Binding SpeedText}" Width="Auto" MinWidth="110" IsReadOnly="True" FontSize="13"/>
+                <DataGridTextColumn Header="{DynamicResource Loc_ColETA}" Binding="{Binding ETAText}" Width="Auto" MinWidth="90" IsReadOnly="True" FontSize="13"/>
+                <DataGridTextColumn Header="{DynamicResource Loc_ColStatus}" Binding="{Binding Status}" Width="Auto" MinWidth="140" IsReadOnly="True" FontSize="13" Foreground="#AAA"/>
+                <DataGridTemplateColumn Header="{DynamicResource Loc_ColControls}" Width="340">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <!-- Active Download Controls -->
                                 <StackPanel Orientation="Horizontal" Visibility="{Binding IsNotCompleted, Converter={StaticResource BoolToVis}}">
-                                    <Button x:Name="StartItemButton" Content="Start ▶" Width="55" Height="30" Margin="2" 
-                                            Background="#28A745" Foreground="White" BorderThickness="0" FontSize="11"
-                                            Click="RetryItemButton_Click" ToolTip="Start/Resume"/>
-                                    <Button x:Name="StopItemButton" Content="Stop ⏹" Width="55" Height="30" Margin="2" 
-                                            Background="#DC3545" Foreground="White" BorderThickness="0" FontSize="11"
-                                            Click="StopItemButton_Click" ToolTip="Stop Download"/>
+                                    <Button x:Name="StartItemButton" Content="{DynamicResource Loc_RowStart}" Width="55" Height="30" Margin="2" 
+                                            Background="#16A34A" Foreground="White" BorderThickness="0" FontSize="11" FontWeight="Bold"
+                                            Click="RetryItemButton_Click" ToolTip="Start/Resume">
+                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="15"/></Style></Button.Resources>
+                                    </Button>
+                                    <Button x:Name="StopItemButton" Content="{DynamicResource Loc_RowStop}" Width="55" Height="30" Margin="2" 
+                                            Background="#B91C1C" Foreground="White" BorderThickness="0" FontSize="11" FontWeight="Bold"
+                                            Click="StopItemButton_Click" ToolTip="Stop Download">
+                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="15"/></Style></Button.Resources>
+                                    </Button>
                                 </StackPanel>
                                 
                                 <!-- File Management Controls (Completed Only) -->
                                 <StackPanel Orientation="Horizontal" Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVis}}">
-                                    <Button x:Name="LocateItemButton" Content="Open 📂" Width="80" Height="30" Margin="2" 
+                                    <Button x:Name="LocateItemButton" Content="{DynamicResource Loc_RowOpen}" Width="80" Height="30" Margin="2" 
                                             Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontSize="11" FontWeight="Bold"
-                                            Click="LocateItemButton_Click" ToolTip="Locate File in Folder"/>
+                                            Click="LocateItemButton_Click" ToolTip="Locate File in Folder">
+                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="15"/></Style></Button.Resources>
+                                    </Button>
                                 </StackPanel>
                                 
                                 <!-- Universal Actions -->
-                                <Button x:Name="RemoveItemButton" Content="Remove ✖" Width="70" Height="30" Margin="2" 
-                                        Background="#334155" Foreground="#CBD5E1" BorderThickness="0" FontSize="11"
-                                        Click="RemoveItem_Click" ToolTip="Remove from list only (keeps file on disk)"/>
-                                <Button x:Name="DeleteItemButton" Content="Delete 🗑️" Width="70" Height="30" Margin="2" 
-                                        Background="#DC3545" Foreground="White" BorderThickness="0" FontSize="11"
-                                        Click="DeleteItemButton_Click" ToolTip="Permanently delete from list and disk"/>
+                                <Button x:Name="RemoveItemButton" Content="{DynamicResource Loc_RowRemove}" Width="70" Height="30" Margin="2" 
+                                        Background="#334155" Foreground="#CBD5E1" BorderThickness="0" FontSize="11" FontWeight="Bold"
+                                        Click="RemoveItem_Click" ToolTip="Remove from list only (keeps file on disk)">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="15"/></Style></Button.Resources>
+                                </Button>
+                                <Button x:Name="DeleteItemButton" Content="{DynamicResource Loc_RowDelete}" Width="70" Height="30" Margin="2" 
+                                        Background="#991B1B" Foreground="#FECACA" BorderThickness="0" FontSize="11" FontWeight="Bold"
+                                        Click="DeleteItemButton_Click" ToolTip="Permanently delete from list and disk">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="15"/></Style></Button.Resources>
+                                </Button>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -252,13 +289,25 @@
         </DataGrid>
 
         <!-- Summary Footer -->
-        <Border Grid.Row="3" Background="#1E293B" Margin="0,20,0,0" Padding="0" CornerRadius="8" BorderBrush="#334155" BorderThickness="1" ClipToBounds="True">
+        <Border Grid.Row="3" Background="#1E293B" Margin="0,20,0,0" Padding="0" CornerRadius="12" BorderBrush="#334155" BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="25" ShadowDepth="10" Color="Black" Opacity="0.5"/>
+            </Border.Effect>
             <Grid>
                 <!-- Speed Graph Background -->
-                <Canvas x:Name="SpeedGraphCanvas" VerticalAlignment="Bottom" Height="80" ClipToBounds="True">
-                    <Polygon x:Name="SpeedGraphFill" Fill="#1E3ABEF9" />
-                    <Polyline x:Name="SpeedGraphLine" Stroke="#3ABEF9" StrokeThickness="2" />
-                </Canvas>
+                <Border CornerRadius="12" ClipToBounds="True">
+                    <Canvas x:Name="SpeedGraphCanvas" VerticalAlignment="Bottom" Height="80">
+                        <Polygon x:Name="SpeedGraphFill">
+                            <Polygon.Fill>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#333ABEF9" Offset="0"/>
+                                    <GradientStop Color="#003ABEF9" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Polygon.Fill>
+                        </Polygon>
+                        <Polyline x:Name="SpeedGraphLine" Stroke="#3ABEF9" StrokeThickness="2" />
+                    </Canvas>
+                </Border>
                 
                 <Grid Margin="20,15">
                 <Grid.ColumnDefinitions>
@@ -267,7 +316,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Vertical" Grid.Column="0">
-                    <TextBlock Text="TOTAL SIZE" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold"/>
+                    <TextBlock Text="{DynamicResource Loc_SumTotalSize}" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold"/>
                     <TextBlock x:Name="TotalSizeText" Text="0.00 GB" FontSize="22" FontWeight="SemiBold" Margin="0,5,0,0" Foreground="#F8FAFC"/>
                 </StackPanel>
                 
@@ -281,21 +330,21 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                            <TextBlock Text="QUEUED" Foreground="#94A3B8" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource Loc_SumQueued}" Foreground="#94A3B8" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
                             <TextBlock x:Name="QueuedCountText" Text="0" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                            <TextBlock Text="ACTIVE" Foreground="#4ADE80" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource Loc_SumActive}" Foreground="#4ADE80" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
                             <TextBlock x:Name="ActiveCountText" Text="0" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
                         </StackPanel>
                         <StackPanel Grid.Column="4" HorizontalAlignment="Center">
-                            <TextBlock Text="FINISHED" Foreground="#3ABEF9" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource Loc_SumFinished}" Foreground="#3ABEF9" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
                             <TextBlock x:Name="FinishedCountText" Text="0" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
                 <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Right">
-                    <TextBlock Text="TOTAL SPEED" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    <TextBlock Text="{DynamicResource Loc_SumTotalSpeed}" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
                     <TextBlock x:Name="TotalSpeedText" Text="0 KB/s" FontSize="22" FontWeight="SemiBold" Margin="0,5,0,0" HorizontalAlignment="Right" Foreground="#F8FAFC"/>
                 </StackPanel>
                 </Grid>
@@ -306,32 +355,38 @@
         <Grid Grid.Row="4" Margin="0,20,0,0">
             <StackPanel Orientation="Vertical" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Active Parallel Slots: " Foreground="#64748B" FontSize="13"/>
+                    <TextBlock Text="{DynamicResource Loc_FooterParallel}" Foreground="#64748B" FontSize="13" Margin="0,0,5,0"/>
                     <TextBlock x:Name="ParallelLimitText" Text="3" Foreground="#3ABEF9" FontSize="13" FontWeight="Bold"/>
-                    <TextBlock Text=" | Version: " Foreground="#64748B" FontSize="13" Margin="10,0,0,0"/>
+                    <TextBlock Text="{DynamicResource Loc_FooterVersion}" Foreground="#64748B" FontSize="13" Margin="10,0,5,0"/>
                     <TextBlock Text="1.4.0" Foreground="#FFD700" FontSize="13" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                    <TextBlock Text="Download Folder: " Foreground="#64748B" FontSize="12"/>
+                    <TextBlock Text="{DynamicResource Loc_FooterFolder}" Foreground="#64748B" FontSize="12" Margin="0,0,5,0"/>
                     <TextBlock x:Name="PathLabel" Text="..." Foreground="#94A3B8" FontSize="12" FontWeight="SemiBold"/>
                 </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button x:Name="SelectAllButton" Content="Select All" Width="100" Height="45" Margin="0,0,10,0" 
-                        Background="#334155" Foreground="White" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="SelectAll_Click">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                <Button x:Name="SelectAllButton" Content="{DynamicResource Loc_BtnSelectAll}" Width="100" Height="45" Margin="0,0,10,0" 
+                        Background="#1E293B" Foreground="#94A3B8" BorderBrush="#334155" BorderThickness="1" FontSize="13" FontWeight="SemiBold" Click="SelectAll_Click">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
                 </Button>
-                <Button x:Name="RemoveAllButton" Content="Remove All" Width="100" Height="45" Margin="0,0,10,0" 
-                        Background="#64748B" Foreground="White" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="RemoveAll_Click">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                <Button x:Name="RemoveAllButton" Content="{DynamicResource Loc_BtnRemoveAll}" Width="100" Height="45" Margin="0,0,10,0" 
+                        Background="#1E293B" Foreground="#94A3B8" BorderBrush="#334155" BorderThickness="1" FontSize="13" FontWeight="SemiBold" Click="RemoveAll_Click">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
                 </Button>
-                <Button x:Name="DeleteAllButton" Content="Delete All" Width="100" Height="45" Margin="0,0,10,0" 
-                        Background="#DC3545" Foreground="White" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="DeleteAll_Click">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                <Button x:Name="DeleteAllButton" Content="{DynamicResource Loc_BtnDeleteAll}" Width="100" Height="45" Margin="0,0,15,0" 
+                        Background="#7F1D1D" Foreground="#FECACA" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="DeleteAll_Click">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
                 </Button>
-                <Button x:Name="DownloadButton" Content="START SELECTED" Width="150" Height="45" 
-                        Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontSize="14" FontWeight="Bold" Click="DownloadButton_Click">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                <Button x:Name="DownloadButton" Content="{DynamicResource Loc_BtnStartSelected}" Width="170" Height="45" 
+                        Foreground="White" BorderThickness="0" FontSize="14" FontWeight="Bold" Click="DownloadButton_Click">
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#0284C7" Offset="0"/>
+                            <GradientStop Color="#0EA5E9" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Button.Background>
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
                 </Button>
             </StackPanel>
         </Grid>

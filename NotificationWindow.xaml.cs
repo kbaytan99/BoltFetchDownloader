@@ -30,8 +30,12 @@ namespace BoltFetch
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-            
-            // Subtle fade-in could be added here if desired
+        }
+
+        private void CloseBtn_Click(object sender, RoutedEventArgs e)
+        {
+            _closeTimer.Stop();
+            this.Close();
         }
     }
 }

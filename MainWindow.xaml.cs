@@ -22,7 +22,7 @@ namespace BoltFetch
     public partial class MainWindow : Window
     {
         private readonly GoFileService _goFileService = new GoFileService();
-        private readonly DownloadManager _downloadManager = new DownloadManager(3);
+        private readonly DownloadManager _downloadManager;
         private UserSettings _settings;
         private readonly ClipboardMonitor _clipboardMonitor = new ClipboardMonitor();
         private readonly NotificationService _notificationService = new NotificationService();
@@ -42,6 +42,7 @@ namespace BoltFetch
         {
             InitializeComponent();
             _settings = SettingsService.Load();
+            _downloadManager = new DownloadManager(_settings.MaxParallelDownloads);
             _orchestrator = new DownloadOrchestrator(_downloadManager, _settings);
             
             // Handle graph redraw on resize
@@ -68,34 +69,60 @@ namespace BoltFetch
             SetupTrayIcon();
         }
 
-        // --- Custom Title Bar Controls ---
+        #region Title Bar Controls
         private void MinimizeBtn_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
         private void MaximizeBtn_Click(object sender, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
         private void CloseBtn_Click(object sender, RoutedEventArgs e) => Close();
+        #endregion
 
         private async void HandleDetectedLinks(string[] links)
         {
             await FetchFilesBatch(links.ToList());
         }
 
+        #region System Tray & About logic
         private void SetupTrayIcon()
         {
             try
             {
                 _notifyIcon = new Forms.NotifyIcon();
-                // Try to get a high quality icon from the resource or exe
-                _notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                
+                System.Drawing.Icon appIcon = System.Drawing.SystemIcons.Information;
+                try 
+                {
+                    var streamInfo = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Resources/logo.png"));
+                    if (streamInfo != null)
+                    {
+                        appIcon = GetTrayIcon(streamInfo.Stream);
+                        // Windows Bar (Taskbar) iconunu da ayni kirpilmis ve buyutulmus logoyla degistiriyoruz
+                        var wpfIcon = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
+                            appIcon.Handle,
+                            System.Windows.Int32Rect.Empty,
+                            System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+                        this.Icon = wpfIcon;
+                    }
+                }
+                catch { }
+
+                _notifyIcon.Icon = appIcon;
+                
                 _notifyIcon.Visible = true;
                 _notifyIcon.Text = "BoltFetch Downloader";
                 _notifyIcon.DoubleClick += (s, e) => RestoreFromTray();
 
                 var contextMenu = new Forms.ContextMenuStrip();
+                contextMenu.Items.Add("Settings", null, (s, e) => Dispatcher.Invoke(() => SettingsButton_Click(null!, null!)));
+                contextMenu.Items.Add("About", null, (s, e) => Dispatcher.Invoke(() => ShowAboutWindow()));
+                contextMenu.Items.Add("-");
                 contextMenu.Items.Add("Restore", null, (s, e) => RestoreFromTray());
                 contextMenu.Items.Add("-");
                 contextMenu.Items.Add("Exit", null, (s, e) => System.Windows.Application.Current.Shutdown());
                 _notifyIcon.ContextMenuStrip = contextMenu;
             }
-            catch { }
+            catch (Exception ex) 
+            {
+                System.Windows.MessageBox.Show("Tray icon kurulum hatası: " + ex.Message, "Hata", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
         }
 
         private void RestoreFromTray()
@@ -105,17 +132,73 @@ namespace BoltFetch
             this.Activate();
         }
 
+        private void ShowAboutWindow()
+        {
+            var aboutWindow = new AboutWindow();
+            aboutWindow.Owner = this;
+            aboutWindow.ShowDialog();
+        }
+
         protected override void OnStateChanged(EventArgs e)
         {
             if (this.WindowState == WindowState.Minimized)
             {
-                this.Hide();
-                if (_notifyIcon != null)
+                // Dispatcher.BeginInvoke kullanarak Hide işlemini asenkron yapıyoruz ki UI thread kilitlenmesin
+                this.Dispatcher.BeginInvoke(new Action(() => 
                 {
-                    _notifyIcon.ShowBalloonTip(2000, "BoltFetch", "Uygulama arka planda çalışmaya devam ediyor.", Forms.ToolTipIcon.Info);
-                }
+                    this.Hide();
+                }));
             }
             base.OnStateChanged(e);
+        }
+
+        #region General UI Methods
+        private System.Drawing.Icon GetTrayIcon(System.IO.Stream stream)
+        {
+            using (var bmp = new System.Drawing.Bitmap(stream))
+            {
+                // Buyukluk-kucukluk sorununu cozmek icin saydam bosluklari otomatik kirpiyoruz
+                int left = bmp.Width, top = bmp.Height, right = 0, bottom = 0;
+                for (int y = 0; y < bmp.Height; y += 2) // Hizli tarama icin 2'ser atliyoruz
+                {
+                    for (int x = 0; x < bmp.Width; x += 2)
+                    {
+                        if (bmp.GetPixel(x, y).A > 10)
+                        {
+                            if (x < left) left = x;
+                            if (x > right) right = x;
+                            if (y < top) top = y;
+                            if (y > bottom) bottom = y;
+                        }
+                    }
+                }
+
+                int w = right - left + 1;
+                int h = bottom - top + 1;
+                if (w <= 0 || h <= 0) { w = bmp.Width; h = bmp.Height; left = 0; top = 0; }
+
+                // Ikona en iyi yerlesmesi icin resmin tam sığacağı bir kare olustur
+                int size = Math.Max(w, h);
+                var squareBmp = new System.Drawing.Bitmap(size, size);
+                using (var g = System.Drawing.Graphics.FromImage(squareBmp))
+                {
+                    int drawX = (size - w) / 2;
+                    int drawY = (size - h) / 2;
+                    g.DrawImage(bmp, new System.Drawing.Rectangle(drawX, drawY, w, h), new System.Drawing.Rectangle(left, top, w, h), System.Drawing.GraphicsUnit.Pixel);
+                }
+
+                // Tepsi icin cok kaliteli (128x128) pürüzsüz scale yapiyoruz, GetHicon daha sonra boyutlandirabilir ama elimizde kaliteli data olur
+                var finalBmp = new System.Drawing.Bitmap(128, 128);
+                using (var g = System.Drawing.Graphics.FromImage(finalBmp))
+                {
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                    g.DrawImage(squareBmp, 0, 0, 128, 128);
+                }
+
+                return System.Drawing.Icon.FromHandle(finalBmp.GetHicon());
+            }
         }
 
 
@@ -131,6 +214,7 @@ namespace BoltFetch
                 _downloadManager.SpeedLimitKB = _settings.SpeedLimitKB;
                 _downloadManager.SegmentsPerFile = _settings.SegmentsPerFile;
                 _downloadManager.UpdateParallelLimit(_settings.MaxParallelDownloads);
+                _orchestrator.UpdateSettings(_settings);
                 ParallelLimitText.Text = _settings.MaxParallelDownloads.ToString();
             }
         }
@@ -143,7 +227,11 @@ namespace BoltFetch
                 await FetchFilesBatch(dialog.Links);
             }
         }
+        #endregion
 
+        #endregion
+
+        #region Download Queue Initialization
         private async Task FetchFilesBatch(List<string> urls)
         {
             Dispatcher.Invoke(() => AddButton.IsEnabled = false);
@@ -205,8 +293,9 @@ namespace BoltFetch
                 });
             }
         }
+        #endregion
 
-
+        #region User Actions & UI Commands
         private void DownloadButton_Click(object sender, RoutedEventArgs e)
         {
             var selectedItems = FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList();
@@ -390,7 +479,9 @@ namespace BoltFetch
                 UpdateSummary();
             }
         }
+        #endregion
 
+        #region Download Orchestration Callbacks
         private void OnDownloadProgressChanged(string itemId, DownloadProgress progress)
         {
             Dispatcher.Invoke(() =>
@@ -459,7 +550,9 @@ namespace BoltFetch
                 UpdateSummary();
             });
         }
+        #endregion
 
+        #region UI Update & Visualization
         private void UpdateSummary()
         {
             long totalBytes = FileItems.Sum(i => i.Source.Size);
@@ -542,6 +635,7 @@ namespace BoltFetch
             double gb = (double)bytes / (1024 * 1024 * 1024);
             return $"{gb:F2} GB";
         }
+        #endregion
     }
 
     public class FileDisplayItem : INotifyPropertyChanged
