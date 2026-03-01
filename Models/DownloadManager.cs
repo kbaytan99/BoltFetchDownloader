@@ -296,7 +296,8 @@ namespace BoltFetch.Models
                 await foreach (var req in writeChannel.Reader.ReadAllAsync(cancellationToken))
                 {
                     fs.Seek(req.Position, SeekOrigin.Begin);
-                    await fs.WriteAsync(req.Data, 0, req.Length, cancellationToken);
+                    await fs.WriteAsync(req.Data.AsMemory(0, req.Length), cancellationToken);
+                    System.Buffers.ArrayPool<byte>.Shared.Return(req.Data);
                 }
             });
 
@@ -307,9 +308,11 @@ namespace BoltFetch.Models
             {
                 downloadTasks.Add(Task.Run(async () =>
                 {
-                    var buffer = new byte[BUFFER_SIZE];
-                    while (chunks.TryDequeue(out var chunk))
+                    var buffer = System.Buffers.ArrayPool<byte>.Shared.Rent(BUFFER_SIZE);
+                    try
                     {
+                        while (chunks.TryDequeue(out var chunk))
+                        {
                         try
                         {
                             HttpResponseMessage? response = null;
@@ -340,9 +343,9 @@ namespace BoltFetch.Models
                                 int read;
                                 long currentPos = chunk.start;
 
-                                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+                                while ((read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken)) > 0)
                                 {
-                                    var dataCopy = new byte[read];
+                                    var dataCopy = System.Buffers.ArrayPool<byte>.Shared.Rent(read);
                                     Buffer.BlockCopy(buffer, 0, dataCopy, 0, read);
                                     
                                     await writeChannel.Writer.WriteAsync(new FileWriteRequest 
@@ -377,6 +380,11 @@ namespace BoltFetch.Models
                             throw;
                         }
                     }
+                    }
+                    finally
+                    {
+                        System.Buffers.ArrayPool<byte>.Shared.Return(buffer);
+                    }
                 }, cancellationToken));
             }
 
@@ -398,13 +406,15 @@ namespace BoltFetch.Models
 
         private async Task CopyWithReporting(Stream source, Stream destination, string itemId, DownloadProgress progress, CancellationToken cancellationToken)
         {
-            var buffer = new byte[16384];
-            int bytesRead;
-            var lastReportTime = DateTime.MinValue;
-
-            while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+            var buffer = System.Buffers.ArrayPool<byte>.Shared.Rent(64 * 1024);
+            try
             {
-                await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken);
+                int bytesRead;
+                var lastReportTime = DateTime.MinValue;
+
+                while ((bytesRead = await source.ReadAsync(buffer.AsMemory(), cancellationToken)) > 0)
+                {
+                    await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
                 progress.AddBytes(bytesRead);
 
                 if (SpeedLimitKB > 0) 
@@ -418,6 +428,11 @@ namespace BoltFetch.Models
                     ProgressChanged?.Invoke(itemId, progress);
                     lastReportTime = DateTime.Now;
                 }
+                }
+            }
+            finally
+            {
+                System.Buffers.ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 

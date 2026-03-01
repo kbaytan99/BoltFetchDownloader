@@ -416,6 +416,8 @@
                     <TextBlock x:Name="InternetSpeedText" Text="-" Foreground="#4ADE80" FontSize="13" FontWeight="Bold"/>
                     <TextBlock Text="  🧠" FontFamily="Segoe UI Emoji" Foreground="#64748B" FontSize="13" Margin="10,0,3,0"/>
                     <TextBlock Text="Smart Engine" Foreground="#A78BFA" FontSize="13" FontWeight="SemiBold"/>
+                    <TextBlock Text="  |  " Foreground="#64748B" FontSize="13" Margin="10,0,0,0"/>
+                    <TextBlock x:Name="MemoryUsageText" Text="RAM: ~ MB" Foreground="#94A3B8" FontSize="13" FontWeight="SemiBold" ToolTip="Uygulama Bellek Tüketimi"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                     <TextBlock Text="{DynamicResource Loc_FooterFolder}" Foreground="#64748B" FontSize="12" Margin="0,0,5,0"/>

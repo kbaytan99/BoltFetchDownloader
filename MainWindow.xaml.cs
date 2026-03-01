@@ -34,6 +34,8 @@ namespace BoltFetch
         
         // Speed Graph fields
         private readonly List<double> _speedHistory = new List<double>();
+        private DispatcherTimer _memoryTimer;
+        private int _lastActiveCount = 0;
         private const int MaxHistoryPoints = 60;
         private DateTime _lastGraphUpdate = DateTime.MinValue;
         private System.Windows.Point _dragStartPoint;
@@ -45,6 +47,10 @@ namespace BoltFetch
             _settings = SettingsService.Load();
             _downloadManager = new DownloadManager(_settings.MaxParallelDownloads);
             _orchestrator = new DownloadOrchestrator(_downloadManager, _settings);
+            
+            _memoryTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _memoryTimer.Tick += (s, e) => UpdateMemoryUsage();
+            _memoryTimer.Start();
             
             // Handle graph redraw on resize
             SpeedGraphCanvas.SizeChanged += (s, e) => DrawSpeedGraph();
@@ -645,6 +651,17 @@ namespace BoltFetch
         #endregion
 
         #region UI Update & Visualization
+        private void UpdateMemoryUsage()
+        {
+            try
+            {
+                using var process = System.Diagnostics.Process.GetCurrentProcess();
+                long memoryBytes = process.PrivateMemorySize64;
+                MemoryUsageText.Text = $"RAM: {memoryBytes / (1024 * 1024)} MB";
+            }
+            catch { }
+        }
+
         private void UpdateSummary()
         {
             long totalBytes = FileItems.Sum(i => i.Source.Size);
@@ -652,6 +669,14 @@ namespace BoltFetch
             int queued = FileItems.Count(i => i.Status == "Pending");
             int active = FileItems.Count(i => i.Status == "Downloading...");
             int finished = FileItems.Count(i => i.Status == "Completed");
+
+            if (_lastActiveCount > 0 && active == 0)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
+            _lastActiveCount = active;
 
             TotalSizeText.Text = FormatSizeGB(totalBytes);
             QueuedCountText.Text = (queued + FileItems.Count(i => i.Status == "Queued")).ToString();
