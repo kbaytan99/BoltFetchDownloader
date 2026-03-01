@@ -75,11 +75,7 @@ namespace BoltFetch
 
         private async void HandleDetectedLinks(string[] links)
         {
-            // Visual feedback
-            LinkBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(58, 190, 249));
             await FetchFilesBatch(links.ToList());
-            await Task.Delay(1000);
-            LinkBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(51, 65, 85));
         }
 
         private void SetupTrayIcon()
@@ -139,41 +135,18 @@ namespace BoltFetch
             }
         }
 
-        private async void FetchButton_Click(object sender, RoutedEventArgs e)
+        private async void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            var text = LinkTextBox.Text.Trim();
-            if (string.IsNullOrEmpty(text))
+            var dialog = new AddLinkWindow { Owner = this };
+            if (dialog.ShowDialog() == true && dialog.Links.Any())
             {
-                System.Windows.MessageBox.Show("Please enter valid GoFile link(s).");
-                return;
+                await FetchFilesBatch(dialog.Links);
             }
-
-            var links = Regex.Matches(text, @"https://gofile\.io/d/[a-zA-Z0-9]+")
-                             .Cast<Match>()
-                             .Select(m => m.Value)
-                             .Distinct()
-                             .ToList();
-
-            if (links.Any())
-            {
-                await FetchFilesBatch(links);
-                LinkTextBox.Text = string.Empty;
-            }
-            else
-            {
-                _notificationService.ShowMessage("Please enter valid GoFile link(s).");
-            }
-        }
-
-        private void AddButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Just trigger fetch as it handles links in the text box
-            FetchButton_Click(sender, e);
         }
 
         private async Task FetchFilesBatch(List<string> urls)
         {
-            Dispatcher.Invoke(() => FetchButton.IsEnabled = false);
+            Dispatcher.Invoke(() => AddButton.IsEnabled = false);
 
             int totalAdded = 0;
             long totalSize = 0;
@@ -227,7 +200,7 @@ namespace BoltFetch
             finally
             {
                 Dispatcher.Invoke(() => {
-                    FetchButton.IsEnabled = true;
+                    AddButton.IsEnabled = true;
                     UpdateSummary();
                 });
             }

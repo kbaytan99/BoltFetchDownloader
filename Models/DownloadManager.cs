@@ -151,8 +151,10 @@ namespace BoltFetch.Models
                 }
             }
 
-            using (var request = new HttpRequestMessage(HttpMethod.Get, item.DownloadLink))
+            HttpResponseMessage response = null;
+            for (int attempt = 1; attempt <= 5; attempt++)
             {
+                var request = new HttpRequestMessage(HttpMethod.Get, item.DownloadLink);
                 request.Headers.Add("Authorization", $"Bearer {item.Token}");
                 if (existingLength > 0)
                 {
@@ -164,18 +166,29 @@ namespace BoltFetch.Models
                     progress.BytesDownloaded = 0;
                 }
 
-                using (var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                 {
-                    response.EnsureSuccessStatusCode();
-                    
-                    var mode = (existingLength > 0 && response.StatusCode == System.Net.HttpStatusCode.PartialContent) 
-                               ? FileMode.Append : FileMode.Create;
+                    response.Dispose();
+                    if (attempt == 5) throw new HttpRequestException("429 Too Many Requests after 5 limits reached.");
+                    await Task.Delay(2000 * attempt, cancellationToken);
+                    continue;
+                }
+                break;
+            }
 
-                    using (var stream = await response.Content.ReadAsStreamAsync(cancellationToken))
-                    using (var fileStream = new FileStream(destinationPath, mode, FileAccess.Write, FileShare.None, 16384, true))
-                    {
-                        await CopyWithReporting(stream, fileStream, item.Id, progress, cancellationToken);
-                    }
+            response.EnsureSuccessStatusCode();
+
+            using (response)
+            {
+                var mode = (existingLength > 0 && response.StatusCode == System.Net.HttpStatusCode.PartialContent) 
+                            ? FileMode.Append : FileMode.Create;
+
+                using (var stream = await response.Content.ReadAsStreamAsync(cancellationToken))
+                using (var fileStream = new FileStream(destinationPath, mode, FileAccess.Write, FileShare.None, 16384, true))
+                {
+                    await CopyWithReporting(stream, fileStream, item.Id, progress, cancellationToken);
                 }
             }
         }
@@ -225,34 +238,51 @@ namespace BoltFetch.Models
                     {
                         try
                         {
-                            using var request = new HttpRequestMessage(HttpMethod.Get, item.DownloadLink);
-                            request.Headers.Add("Authorization", $"Bearer {item.Token}");
-                            request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(chunk.start, chunk.end);
+                            HttpResponseMessage response = null;
+                            for (int attempt = 1; attempt <= 5; attempt++)
+                            {
+                                var request = new HttpRequestMessage(HttpMethod.Get, item.DownloadLink);
+                                request.Headers.Add("Authorization", $"Bearer {item.Token}");
+                                request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(chunk.start, chunk.end);
 
-                            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                                response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                                
+                                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                                {
+                                    response.Dispose();
+                                    if (attempt == 5) throw new HttpRequestException("429 Too Many Requests after 5 limits reached.");
+                                    await Task.Delay(2000 * attempt + Random.Shared.Next(100, 1000), cancellationToken);
+                                    continue;
+                                }
+                                break;
+                            }
+
                             response.EnsureSuccessStatusCode();
 
-                            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-                            int read;
-                            long currentPos = chunk.start;
-
-                            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+                            using (response)
+                            using (var stream = await response.Content.ReadAsStreamAsync(cancellationToken))
                             {
-                                var dataCopy = new byte[read];
-                                Buffer.BlockCopy(buffer, 0, dataCopy, 0, read);
-                                
-                                await writeChannel.Writer.WriteAsync(new FileWriteRequest 
-                                { 
-                                    Data = dataCopy, 
-                                    Position = currentPos, 
-                                    Length = read 
-                                }, cancellationToken);
+                                int read;
+                                long currentPos = chunk.start;
 
-                                currentPos += read;
-                                progress.AddBytes(read);
+                                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+                                {
+                                    var dataCopy = new byte[read];
+                                    Buffer.BlockCopy(buffer, 0, dataCopy, 0, read);
+                                    
+                                    await writeChannel.Writer.WriteAsync(new FileWriteRequest 
+                                    { 
+                                        Data = dataCopy, 
+                                        Position = currentPos, 
+                                        Length = read 
+                                    }, cancellationToken);
 
-                                if (SpeedLimitKB > 0)
-                                    await ThrottleInstant(read, SpeedLimitKB, cancellationToken);
+                                    currentPos += read;
+                                    progress.AddBytes(read);
+
+                                    if (SpeedLimitKB > 0)
+                                        await ThrottleInstant(read, SpeedLimitKB, cancellationToken);
+                                }
                             }
                         }
                         catch (Exception)
