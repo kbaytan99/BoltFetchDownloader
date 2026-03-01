@@ -15,6 +15,7 @@ Bu dosya KDownloader (BoltFetch) projesinde çalışan Yapay Zeka (AI) ajanını
 ## 3. Otomatik Jira (Atlassian) Entegrasyonu
 - **Yeni Sistem Eklenmesi:** Yapay zeka projede yepyeni bir `.cs` dosyası veya sistemi oluşturduğunda, bunu **otomatik olarak Atlassian MCP aracı üzerinden** `kbaytan99` hesabındaki `SCRUM` (BoltFetch Downloader) panosuna yepyeni bir **Feature** (Özellik) görevi olarak eklemek *ZORUNDADIR.*
 - **Mevcut Sistemin Güncellenmesi:** Eğer yapay zeka var olan bir kod sistemini/dosyasını büyük ölçüde değiştiriyor, refactor ediyor veya yeniliyorsa, Jira'daki o komponente ait Feature biletini bulup **proaktif olarak güncellemek** (durumu değiştirmek, yorum atmak veya etiketlemek) *ZORUNDADIR.*
+- **ZORUNLU BUG (HATA) KAYDI:** Kullanıcı projede bir hata (Bug) tespit edip bildirdiğinde veya yapay zeka kod yazarken kritik bir çökme fark ettiğinde; anında Jira SCRUM panosuna yeni bir `Error` (veya Bug) türünde bilet açmalıdır. Bu bilet oluşturulurken problemin temeli Türkçe anlatılmalı ve hata çözüldüğünde ilgili Jira bileti "Done" (Tamamlandı) sütununa veya statüsüne çekilmek *ZORUNDADIR.*
 - **Kullanıcıyı Beklememe:** Bu Jira senkronizasyon işlemleri kullanıcının hatırlatmasına gerek kalmadan, yapay zekanın kendi inisiyatifinde otomatik olarak yapılmalıdır.
 
 ## 4. Git Yönetimi ve Otomatik Push (Versiyon Kontrol)
