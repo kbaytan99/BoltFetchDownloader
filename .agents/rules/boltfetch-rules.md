@@ -21,3 +21,6 @@ Bu dosya KDownloader (BoltFetch) projesinde çalışan Yapay Zeka (AI) ajanını
 ## 4. Git Yönetimi ve Otomatik Push (Versiyon Kontrol)
 - **Her Değişiklikten Sonra Kayıt (Commit & Push):** Yapay zeka projede işe yarar bir özelliği kodladığında, hata düzelttiğinde veya yeni bir sistem eklediğinde, kodun stabil olduğuna emin olduktan HEMEN SONRA kullanıcıdan talimat beklemeden projede `git add .`, `git commit` ve `git push` komutlarını çalıştırmak zorundadır.
 - **Detaylı Açıklama (Commit Message):** Atılan commit mesajları asla "Updated code" gibi baştansavma olamaz. Yapay zeka, commit mesajında (veya terminal üzerinden `-m` parametrelerinde) **tam olarak nelerin değiştiğini, neden değiştiğini ve hangi Jira bileti (Örn: SCRUM-24) için yapıldığını** detaylı bir rapor halinde Türkçe olarak belgelendirecektir.
+
+## 5. İşletim Sistemi ve Terminal Kullanımı (Auto-Run)
+- **İzin Almadan Komut Çalıştırma:** Yapay zeka, kullanıcının işletim sisteminin **Windows** (PowerShell vb.) olduğunu bilir. Projeyi derlemek (`dotnet build`), çalıştırmak (`dotnet run`), test etmek veya klasör/dosya yönetimi gibi terminal komutlarını kullanırken **KESİNLİKLE KULLANICIDAN İZİN İSTEMEYECEKTİR.** Mantıklı ve güvenli olduğuna karar verdiği tüm komutları inisiyatif alarak kendi kendine çalıştırır ve projeyi anında test eder.
