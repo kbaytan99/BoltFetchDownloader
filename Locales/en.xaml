@@ -28,6 +28,8 @@
     <system:String x:Key="Loc_SumActive">ACTIVE</system:String>
     <system:String x:Key="Loc_SumFinished">FINISHED</system:String>
     <system:String x:Key="Loc_SumTotalSpeed">TOTAL SPEED</system:String>
+    <system:String x:Key="Loc_SumDownloaded">DOWNLOADED</system:String>
+    <system:String x:Key="Loc_SumRemaining">REMAINING</system:String>
     
     <!-- Alt Butonlar / Footer Actions -->
     <system:String x:Key="Loc_FooterParallel">Active Parallel Slots:</system:String>

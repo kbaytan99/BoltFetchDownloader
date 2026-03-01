@@ -1,0 +1,55 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <!-- Ana Ekran / Main Window -->
+    <system:String x:Key="Loc_AppTitle">BoltFetch İndirici</system:String>
+    <system:String x:Key="Loc_SettingsBtn">Ayarlar</system:String>
+    
+    <!-- Tablo Başlıkları -->
+    <system:String x:Key="Loc_ColName">Dosya Adı</system:String>
+    <system:String x:Key="Loc_ColSize">Boyut</system:String>
+    <system:String x:Key="Loc_ColProgress">İlerleme</system:String>
+    <system:String x:Key="Loc_ColSpeed">Hız</system:String>
+    <system:String x:Key="Loc_ColETA">Kalan</system:String>
+    <system:String x:Key="Loc_ColStatus">Durum</system:String>
+    <system:String x:Key="Loc_ColControls">İşlemler</system:String>
+
+    <!-- Satır İçi Butonlar -->
+    <system:String x:Key="Loc_RowStart">Başlat ▶</system:String>
+    <system:String x:Key="Loc_RowStop">Durdur ⏹</system:String>
+    <system:String x:Key="Loc_RowOpen">Aç 📂</system:String>
+    <system:String x:Key="Loc_RowRemove">Kaldır ✖</system:String>
+    <system:String x:Key="Loc_RowDelete">Sil 🗑️</system:String>
+
+    <!-- Özet Alanı -->
+    <system:String x:Key="Loc_SumTotalSize">TOPLAM BOYUT</system:String>
+    <system:String x:Key="Loc_SumQueued">SIRADA</system:String>
+    <system:String x:Key="Loc_SumActive">AKTİF</system:String>
+    <system:String x:Key="Loc_SumFinished">BİTEN</system:String>
+    <system:String x:Key="Loc_SumTotalSpeed">TOPLAM HIZ</system:String>
+    <system:String x:Key="Loc_SumDownloaded">İNDİRİLEN</system:String>
+    <system:String x:Key="Loc_SumRemaining">KALAN</system:String>
+    
+    <!-- Alt Butonlar -->
+    <system:String x:Key="Loc_FooterParallel">Paralel Slot:</system:String>
+    <system:String x:Key="Loc_FooterVersion">Sürüm:</system:String>
+    <system:String x:Key="Loc_FooterFolder">İndirme Klasörü:</system:String>
+    <system:String x:Key="Loc_BtnSelectAll">Tümünü Seç</system:String>
+    <system:String x:Key="Loc_BtnRemoveAll">Tümünü Kaldır</system:String>
+    <system:String x:Key="Loc_BtnDeleteAll">Tümünü Sil</system:String>
+    <system:String x:Key="Loc_BtnStartSelected">SEÇİLENLERİ BAŞLAT</system:String>
+
+    <!-- Tepsi Menüsü -->
+    <system:String x:Key="Loc_TraySettings">Ayarlar</system:String>
+    <system:String x:Key="Loc_TrayAbout">Hakkında</system:String>
+    <system:String x:Key="Loc_TrayRestore">Göster</system:String>
+    <system:String x:Key="Loc_TrayExit">Çıkış</system:String>
+
+    <!-- Hakkında Ekranı -->
+    <system:String x:Key="Loc_AboutTitle">Hakkında</system:String>
+    <system:String x:Key="Loc_AboutDesc">Modern WPF mimarisi üzerine inşa edilmiş, yıldırım hızında çoklu sunucu indirme yöneticisi.</system:String>
+    <system:String x:Key="Loc_AppVersion">Sürüm 1.4.0</system:String>
+    <system:String x:Key="Loc_AboutBtnOK">Tamam</system:String>
+
+</ResourceDictionary>

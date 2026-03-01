@@ -11,6 +11,7 @@ namespace BoltFetch.Models
         public int MaxParallelDownloads { get; set; } = 3;
         public int SegmentsPerFile { get; set; } = 4;
         public string Language { get; set; } = "en";
+        public Dictionary<string, double> ColumnWidths { get; set; } = new Dictionary<string, double>();
     }
 
     public static class SettingsService

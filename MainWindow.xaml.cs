@@ -66,6 +66,12 @@ namespace BoltFetch
 
             // Setup NotifyIcon
             SetupTrayIcon();
+
+            // Load saved language
+            ApplyLanguage(_settings.Language);
+
+            // Restore column widths
+            RestoreColumnWidths();
         }
 
         #region Title Bar Controls
@@ -209,6 +215,7 @@ namespace BoltFetch
             settingsWindow.Owner = this;
             if (settingsWindow.ShowDialog() == true)
             {
+                var oldLang = _settings.Language;
                 _settings = settingsWindow.Settings;
                 SettingsService.Save(_settings);
                 PathLabel.Text = _settings.DownloadPath;
@@ -217,7 +224,24 @@ namespace BoltFetch
                 _downloadManager.UpdateParallelLimit(_settings.MaxParallelDownloads);
                 _orchestrator.UpdateSettings(_settings);
                 ParallelLimitText.Text = _settings.MaxParallelDownloads.ToString();
+
+                if (oldLang != _settings.Language)
+                {
+                    ApplyLanguage(_settings.Language);
+                }
             }
+        }
+
+        private void ApplyLanguage(string langCode)
+        {
+            var dict = new ResourceDictionary();
+            dict.Source = new Uri($"Locales/{langCode}.xaml", UriKind.Relative);
+
+            // Remove old locale dictionaries and add the new one
+            var toRemove = System.Windows.Application.Current.Resources.MergedDictionaries
+                .Where(d => d.Source != null && d.Source.OriginalString.StartsWith("Locales/")).ToList();
+            foreach (var d in toRemove) System.Windows.Application.Current.Resources.MergedDictionaries.Remove(d);
+            System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
         }
 
         private async void AddButton_Click(object sender, RoutedEventArgs e)
@@ -553,7 +577,13 @@ namespace BoltFetch
             QueuedCountText.Text = (queued + FileItems.Count(i => i.Status == "Queued")).ToString();
             ActiveCountText.Text = active.ToString();
             FinishedCountText.Text = finished.ToString();
-            
+
+            // Downloaded / Remaining
+            long downloadedBytes = FileItems.Sum(i => i.SourceProgress?.BytesDownloaded ?? (i.Status == "Completed" ? i.Source.Size : 0));
+            long remainingBytes = Math.Max(0, totalBytes - downloadedBytes);
+            DownloadedSizeText.Text = FormatSizeGB(downloadedBytes);
+            RemainingSizeText.Text = FormatSizeGB(remainingBytes);
+
             // Calculate Total Speed
             long totalSpeedBytes = FileItems.Where(i => i.Status == "Downloading...").Sum(i => i.SourceProgress?.SpeedBytesPerSecond ?? 0);
             TotalSpeedText.Text = FormatSpeed(totalSpeedBytes) + "/s";
@@ -622,6 +652,37 @@ namespace BoltFetch
         {
             double gb = (double)bytes / (1024 * 1024 * 1024);
             return $"{gb:F2} GB";
+        }
+
+        private void SaveColumnWidths()
+        {
+            _settings.ColumnWidths.Clear();
+            foreach (var col in FilesDataGrid.Columns)
+            {
+                var header = col.Header?.ToString() ?? col.DisplayIndex.ToString();
+                _settings.ColumnWidths[header] = col.ActualWidth;
+            }
+            SettingsService.Save(_settings);
+        }
+
+        private void RestoreColumnWidths()
+        {
+            if (_settings.ColumnWidths.Count == 0) return;
+            foreach (var col in FilesDataGrid.Columns)
+            {
+                var header = col.Header?.ToString() ?? col.DisplayIndex.ToString();
+                if (_settings.ColumnWidths.TryGetValue(header, out double width) && width > 20)
+                {
+                    col.Width = new DataGridLength(width);
+                }
+            }
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            SaveColumnWidths();
+            _notifyIcon?.Dispose();
+            base.OnClosing(e);
         }
         #endregion
     }

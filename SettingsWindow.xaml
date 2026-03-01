@@ -37,8 +37,14 @@
                 <ComboBox x:Name="LanguageComboBox" Height="40" VerticalContentAlignment="Center" Padding="10,0" Margin="0,0,0,25" FontSize="13">
                     <ComboBoxItem Tag="en" IsSelected="True" Foreground="Black">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🇬🇧" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="🇬🇧" FontFamily="Segoe UI Emoji" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
                             <TextBlock Text="English" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem Tag="tr" Foreground="Black">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🇹🇷" FontFamily="Segoe UI Emoji" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Türkçe" VerticalAlignment="Center"/>
                         </StackPanel>
                     </ComboBoxItem>
                 </ComboBox>

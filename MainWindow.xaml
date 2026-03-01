@@ -4,9 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BoltFetch"
+        xmlns:converters="clr-namespace:BoltFetch.Converters"
         mc:Ignorable="d"
-        Title="BoltFetch Downloader" Height="850" Width="1200"
-        MinHeight="650" MinWidth="1000"
+        Title="BoltFetch Downloader" Height="950" Width="1400"
+        MinHeight="700" MinWidth="1100"
         WindowStartupLocation="CenterScreen"
         Icon="Resources/logo.png"
         Foreground="#E2E8F0"
@@ -21,6 +22,8 @@
         <WindowChrome CaptionHeight="35" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
     <Window.Resources>
+        <converters:ProgressWidthConverter x:Key="ProgressWidthConverter"/>
+
         <!-- Premium Thin ScrollBar -->
         <Style TargetType="ScrollBar">
             <Setter Property="Background" Value="Transparent"/>
@@ -224,9 +227,21 @@
                                 <ProgressBar Value="{Binding ProgressValue}" Maximum="100" Height="20" BorderThickness="0">
                                     <ProgressBar.Template>
                                         <ControlTemplate TargetType="ProgressBar">
-                                            <Border Background="#1E293B" CornerRadius="10" ClipToBounds="True">
-                                                <Border x:Name="PART_Indicator" Background="#3ABEF9" CornerRadius="10" HorizontalAlignment="Left" />
-                                            </Border>
+                                            <Grid>
+                                                <Border Background="#1E293B" CornerRadius="10" ClipToBounds="True"/>
+                                                <Border CornerRadius="10" ClipToBounds="True">
+                                                    <Grid>
+                                                        <Rectangle Fill="#3ABEF9" HorizontalAlignment="Left">
+                                                            <Rectangle.Width>
+                                                                <MultiBinding Converter="{StaticResource ProgressWidthConverter}">
+                                                                    <Binding Path="Value" RelativeSource="{RelativeSource TemplatedParent}"/>
+                                                                    <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Grid}"/>
+                                                                </MultiBinding>
+                                                            </Rectangle.Width>
+                                                        </Rectangle>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
                                         </ControlTemplate>
                                     </ProgressBar.Template>
                                 </ProgressBar>
@@ -314,6 +329,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Vertical" Grid.Column="0">
                     <TextBlock Text="{DynamicResource Loc_SumTotalSize}" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold"/>
@@ -343,7 +359,26 @@
                         </StackPanel>
                     </Grid>
                 </StackPanel>
-                <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Right">
+
+                <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Center">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                            <TextBlock Text="{DynamicResource Loc_SumDownloaded}" Foreground="#4ADE80" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="DownloadedSizeText" Text="0.00 GB" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                            <TextBlock Text="{DynamicResource Loc_SumRemaining}" Foreground="#F59E0B" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="RemainingSizeText" Text="0.00 GB" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Orientation="Vertical" Grid.Column="3" HorizontalAlignment="Right">
                     <TextBlock Text="{DynamicResource Loc_SumTotalSpeed}" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
                     <TextBlock x:Name="TotalSpeedText" Text="0 KB/s" FontSize="22" FontWeight="SemiBold" Margin="0,5,0,0" HorizontalAlignment="Right" Foreground="#F8FAFC"/>
                 </StackPanel>
@@ -358,7 +393,7 @@
                     <TextBlock Text="{DynamicResource Loc_FooterParallel}" Foreground="#64748B" FontSize="13" Margin="0,0,5,0"/>
                     <TextBlock x:Name="ParallelLimitText" Text="3" Foreground="#3ABEF9" FontSize="13" FontWeight="Bold"/>
                     <TextBlock Text="{DynamicResource Loc_FooterVersion}" Foreground="#64748B" FontSize="13" Margin="10,0,5,0"/>
-                    <TextBlock Text="1.4.0" Foreground="#FFD700" FontSize="13" FontWeight="Bold"/>
+                    <TextBlock Text="{DynamicResource Loc_AppVersion}" Foreground="#FFD700" FontSize="13" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                     <TextBlock Text="{DynamicResource Loc_FooterFolder}" Foreground="#64748B" FontSize="12" Margin="0,0,5,0"/>
