@@ -8,33 +8,108 @@
         Title="BoltFetch Downloader" Height="750" Width="1100"
         MinHeight="650" MinWidth="1000"
         Icon="Resources/logo.png"
-        Background="#0F172A" Foreground="#E2E8F0">
+        Background="#0F172A" Foreground="#E2E8F0"
+        WindowStyle="SingleBorderWindow">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="35" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
     <Window.Resources>
+        <!-- Premium Thin ScrollBar -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Border Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="true">
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="#334155" CornerRadius="4" Margin="2,0"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Button Style with Animation -->
         <Style x:Key="ModernButton" TargetType="Button">
-            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Background" Value="#1E293B"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
             <Setter Property="FontSize" Value="13"/>
-            <Style.Resources>
-                <Style TargetType="Border">
-                    <Setter Property="CornerRadius" Value="4"/>
-                </Style>
-            </Style.Resources>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="19">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="#334155"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="#0F172A"/>
+                                <Setter Property="RenderTransform" TargetName="border">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.97" ScaleY="0.97" CenterX="0.5" CenterY="0.5"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </Window.Resources>
     
-    <Grid Margin="20">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="35"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
+        <!-- Custom Title Bar -->
+        <Grid Grid.Row="0" Background="#0C1322" WindowChrome.IsHitTestVisibleInChrome="False">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0">
+                <Image Source="Resources/logo.png" Height="18" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <TextBlock Text="BoltFetch Downloader" FontSize="13" FontWeight="SemiBold" Foreground="#94A3B8" VerticalAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" WindowChrome.IsHitTestVisibleInChrome="True">
+                <Button Content="—" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="MinimizeBtn_Click" Cursor="Hand">
+                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="—" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,5"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#1E293B"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
+                </Button>
+                <Button Content="☐" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="MaximizeBtn_Click" Cursor="Hand">
+                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="☐" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-3,0,0"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#1E293B"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
+                </Button>
+                <Button Content="✕" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="CloseBtn_Click" Cursor="Hand">
+                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="✕" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#E81123"/><Setter Property="Foreground" Value="White"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Content Frame -->
+        <Grid Grid.Row="1" Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
         <DockPanel Grid.Row="0" Margin="0,0,0,20">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <Image Source="Resources/logo.png" Height="60" Margin="0,0,15,0" RenderOptions.BitmapScalingMode="HighQuality"/>
@@ -99,9 +174,10 @@
         </Border>
 
         <!-- File List -->
+        <!-- File List -->
         <DataGrid x:Name="FilesDataGrid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False"
-                  Background="#1A1A1A" Foreground="White" RowBackground="#1A1A1A" BorderThickness="1" BorderBrush="#333"
-                  HeadersVisibility="Column" SelectionMode="Extended" RowHeight="50" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#333">
+                  Background="Transparent" RowBackground="Transparent" BorderThickness="0"
+                  HeadersVisibility="Column" SelectionMode="Extended" RowHeight="50" GridLinesVisibility="None">
             <DataGrid.Resources>
                 <Style TargetType="DataGridColumnHeader">
                     <Setter Property="Background" Value="#1E293B"/>
@@ -113,9 +189,17 @@
                     <Setter Property="BorderBrush" Value="#3ABEF9"/>
                 </Style>
                 <Style TargetType="DataGridRow">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="BorderBrush" Value="#1E293B"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
                     <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#1E293B"/>
+                        </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="#2D2D30"/>
+                            <Setter Property="Background" Value="#1E3ABEF9"/>
+                            <Setter Property="BorderBrush" Value="#3ABEF9"/>
                         </Trigger>
                     </Style.Triggers>
                 </Style>
@@ -134,8 +218,15 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Grid Margin="10,0">
-                                <ProgressBar Value="{Binding ProgressValue}" Maximum="100" Height="20" 
-                                             Foreground="#3ABEF9" Background="#334155" BorderThickness="0"/>
+                                <ProgressBar Value="{Binding ProgressValue}" Maximum="100" Height="20" BorderThickness="0">
+                                    <ProgressBar.Template>
+                                        <ControlTemplate TargetType="ProgressBar">
+                                            <Border Background="#1E293B" CornerRadius="10" ClipToBounds="True">
+                                                <Border x:Name="PART_Indicator" Background="#3ABEF9" CornerRadius="10" HorizontalAlignment="Left" />
+                                            </Border>
+                                        </ControlTemplate>
+                                    </ProgressBar.Template>
+                                </ProgressBar>
                                 <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Center" 
                                            VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="White">
                                     <TextBlock.Effect>
@@ -185,8 +276,15 @@
         </DataGrid>
 
         <!-- Summary Footer -->
-        <Border Grid.Row="3" Background="#1E293B" Margin="0,20,0,0" Padding="20,15" CornerRadius="8" BorderBrush="#334155" BorderThickness="1">
+        <Border Grid.Row="3" Background="#1E293B" Margin="0,20,0,0" Padding="0" CornerRadius="8" BorderBrush="#334155" BorderThickness="1" ClipToBounds="True">
             <Grid>
+                <!-- Speed Graph Background -->
+                <Canvas x:Name="SpeedGraphCanvas" VerticalAlignment="Bottom" Height="80" ClipToBounds="True">
+                    <Polygon x:Name="SpeedGraphFill" Fill="#1E3ABEF9" />
+                    <Polyline x:Name="SpeedGraphLine" Stroke="#3ABEF9" StrokeThickness="2" />
+                </Canvas>
+                
+                <Grid Margin="20,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -224,6 +322,7 @@
                     <TextBlock Text="TOTAL SPEED" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
                     <TextBlock x:Name="TotalSpeedText" Text="0 KB/s" FontSize="22" FontWeight="SemiBold" Margin="0,5,0,0" HorizontalAlignment="Right" Foreground="#F8FAFC"/>
                 </StackPanel>
+                </Grid>
             </Grid>
         </Border>
 
@@ -241,15 +340,25 @@
                     <TextBlock x:Name="PathLabel" Text="..." Foreground="#94A3B8" FontSize="12" FontWeight="SemiBold"/>
                 </StackPanel>
             </StackPanel>
-            <Button x:Name="DownloadButton" Content="START ALL SELECTED" Width="220" Height="45" 
-                    HorizontalAlignment="Right" Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" 
-                    FontSize="15" FontWeight="Bold" Click="DownloadButton_Click">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="6"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="SelectAllButton" Content="Select All" Width="100" Height="45" Margin="0,0,10,0" 
+                        Background="#334155" Foreground="White" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="SelectAll_Click">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                </Button>
+                <Button x:Name="RemoveAllButton" Content="Remove All" Width="100" Height="45" Margin="0,0,10,0" 
+                        Background="#64748B" Foreground="White" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="RemoveAll_Click">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                </Button>
+                <Button x:Name="DeleteAllButton" Content="Delete All" Width="100" Height="45" Margin="0,0,10,0" 
+                        Background="#DC3545" Foreground="White" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="DeleteAll_Click">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                </Button>
+                <Button x:Name="DownloadButton" Content="START SELECTED" Width="150" Height="45" 
+                        Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontSize="14" FontWeight="Bold" Click="DownloadButton_Click">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                </Button>
+            </StackPanel>
+        </Grid>
         </Grid>
     </Grid>
 </Window>

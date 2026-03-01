@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using BoltFetch.Models;
+using BoltFetch.Services;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using Forms = System.Windows.Forms;
@@ -22,16 +23,30 @@ namespace BoltFetch
     {
         private readonly GoFileService _goFileService = new GoFileService();
         private readonly DownloadManager _downloadManager = new DownloadManager(3);
-        private UserSettings _settings = new UserSettings();
+        private UserSettings _settings;
+        private readonly ClipboardMonitor _clipboardMonitor = new ClipboardMonitor();
+        private readonly NotificationService _notificationService = new NotificationService();
+        private readonly DownloadOrchestrator _orchestrator;
+        
         public ObservableCollection<FileDisplayItem> FileItems { get; } = new ObservableCollection<FileDisplayItem>();
 
-        private Forms.NotifyIcon _notifyIcon;
+        private Forms.NotifyIcon? _notifyIcon;
         private string _lastCapturedLink = string.Empty;
+        
+        // Speed Graph fields
+        private readonly List<double> _speedHistory = new List<double>();
+        private const int MaxHistoryPoints = 60;
+        private DateTime _lastGraphUpdate = DateTime.MinValue;
 
         public MainWindow()
         {
             InitializeComponent();
             _settings = SettingsService.Load();
+            _orchestrator = new DownloadOrchestrator(_downloadManager, _settings);
+            
+            // Handle graph redraw on resize
+            SpeedGraphCanvas.SizeChanged += (s, e) => DrawSpeedGraph();
+            
             _downloadManager.SegmentsPerFile = _settings.SegmentsPerFile;
             _downloadManager.SpeedLimitKB = _settings.SpeedLimitKB;
             PathLabel.Text = _settings.DownloadPath;
@@ -45,14 +60,26 @@ namespace BoltFetch
 
             FileItems.CollectionChanged += (s, e) => UpdateSummary();
 
-            // Setup Clipboard Monitor
-            var clipboardTimer = new DispatcherTimer();
-            clipboardTimer.Interval = TimeSpan.FromSeconds(1.5);
-            clipboardTimer.Tick += ClipboardTimer_Tick;
-            clipboardTimer.Start();
+            // Setup Clipboard Monitor from Service
+            _clipboardMonitor.LinksDetected += (links) => Dispatcher.Invoke(() => HandleDetectedLinks(links));
+            _clipboardMonitor.Start();
 
             // Setup NotifyIcon
             SetupTrayIcon();
+        }
+
+        // --- Custom Title Bar Controls ---
+        private void MinimizeBtn_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+        private void MaximizeBtn_Click(object sender, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        private void CloseBtn_Click(object sender, RoutedEventArgs e) => Close();
+
+        private async void HandleDetectedLinks(string[] links)
+        {
+            // Visual feedback
+            LinkBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(58, 190, 249));
+            await FetchFilesBatch(links.ToList());
+            await Task.Delay(1000);
+            LinkBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(51, 65, 85));
         }
 
         private void SetupTrayIcon()
@@ -95,35 +122,6 @@ namespace BoltFetch
             base.OnStateChanged(e);
         }
 
-        private void ClipboardTimer_Tick(object sender, EventArgs e)
-        {
-            try
-            {
-                if (System.Windows.Clipboard.ContainsText())
-                {
-                    string text = System.Windows.Clipboard.GetText().Trim();
-                    if (string.IsNullOrEmpty(text) || text == _lastCapturedLink) return;
-
-                    // Support multiple links separated by spaces, newlines, etc.
-                    var links = Regex.Matches(text, @"https://gofile\.io/d/[a-zA-Z0-9]+")
-                                     .Cast<Match>()
-                                     .Select(m => m.Value)
-                                     .Distinct()
-                                     .ToList();
-
-                    if (links.Any())
-                    {
-                        _lastCapturedLink = text;
-                        FetchFilesBatch(links);
-
-                        // Visual feedback
-                        LinkBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(58, 190, 249));
-                        System.Threading.Tasks.Task.Delay(1000).ContinueWith(_ => Dispatcher.Invoke(() => LinkBorder.BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(51, 65, 85))));
-                    }
-                }
-            }
-            catch { }
-        }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
@@ -159,11 +157,11 @@ namespace BoltFetch
             if (links.Any())
             {
                 await FetchFilesBatch(links);
-                LinkTextBox.Text = string.Empty; // Clear after successful add
+                LinkTextBox.Text = string.Empty;
             }
             else
             {
-                System.Windows.MessageBox.Show("Please enter valid GoFile link(s).");
+                _notificationService.ShowMessage("Please enter valid GoFile link(s).");
             }
         }
 
@@ -219,12 +217,12 @@ namespace BoltFetch
 
                 if (totalAdded > 0)
                 {
-                    ShowNotification($"{totalAdded} Files Found! 🚀", $"{totalAdded} files ({FormatSizeGB(totalSize)}) added to the list.");
+                    _notificationService.ShowPopup($"{totalAdded} Files Found! 🚀", $"{totalAdded} files ({FormatSizeGB(totalSize)}) added to the list.");
                 }
             }
             catch (Exception ex)
             {
-                Dispatcher.Invoke(() => System.Windows.MessageBox.Show($"Error fetching folder content: {ex.Message}"));
+                Dispatcher.Invoke(() => _notificationService.ShowMessage($"Error fetching folder content: {ex.Message}"));
             }
             finally
             {
@@ -235,20 +233,13 @@ namespace BoltFetch
             }
         }
 
-        private void ShowNotification(string title, string message)
-        {
-            Dispatcher.Invoke(() => {
-                var notify = new NotificationWindow(title, message);
-                notify.Show();
-            });
-        }
 
-        private async void DownloadButton_Click(object sender, RoutedEventArgs e)
+        private void DownloadButton_Click(object sender, RoutedEventArgs e)
         {
             var selectedItems = FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList();
             if (!selectedItems.Any())
             {
-                System.Windows.MessageBox.Show("Please select files to download.");
+                _notificationService.ShowMessage("Please select files to download.");
                 return;
             }
 
@@ -264,45 +255,12 @@ namespace BoltFetch
                 }
             }
 
-            _ = ProcessQueue(); // Start the background processor
+            _ = _orchestrator.ProcessQueueAsync(FileItems);
             
             DownloadButton.IsEnabled = true;
         }
 
-        private async Task ProcessQueue()
-        {
-            // Simple loop to fill slots
-            while (true)
-            {
-                var queuedItems = FileItems.Where(i => i.Status == "Queued").ToList();
-                if (!queuedItems.Any()) break;
-
-                // Check how many we can start
-                int activeCount = FileItems.Count(i => i.Status == "Downloading...");
-                int slotsAvailable = _settings.MaxParallelDownloads - activeCount;
-
-                if (slotsAvailable <= 0)
-                {
-                    await Task.Delay(1000);
-                    continue;
-                }
-
-                foreach (var item in queuedItems.Take(slotsAvailable))
-                {
-                    _ = StartDownload(item, _settings.DownloadPath);
-                }
-
-                await Task.Delay(1000);
-            }
-        }
-
-        private async Task StartDownload(FileDisplayItem item, string path)
-        {
-            if (item.Status == "Downloading..." || item.Status == "Completed") return;
-            
-            item.Status = "Downloading...";
-            await _downloadManager.DownloadFileAsync(item.Source, path);
-        }
+        // StartDownload removed as it's now in DownloadOrchestrator
 
         private void StopItemButton_Click(object sender, RoutedEventArgs e)
         {
@@ -316,7 +274,8 @@ namespace BoltFetch
         {
             if (sender is FrameworkElement element && element.DataContext is FileDisplayItem item)
             {
-                StartDownload(item, _settings.DownloadPath);
+                item.Status = "Queued";
+                _ = _orchestrator.ProcessQueueAsync(FileItems);
             }
         }
 
@@ -331,7 +290,7 @@ namespace BoltFetch
                 }
                 else
                 {
-                    System.Windows.MessageBox.Show("File not found on disk.");
+                    _notificationService.ShowMessage("File not found on disk.");
                 }
             }
         }
@@ -340,9 +299,14 @@ namespace BoltFetch
         {
             if (sender is FrameworkElement element && element.DataContext is FileDisplayItem item)
             {
-                // Only remove from list, keep file on disk
-                FileItems.Remove(item);
-                UpdateSummary();
+                var result = System.Windows.MessageBox.Show($"Are you sure you want to remove '{item.Name}' from the list?\n\n(This will NOT delete the file from your PC)", 
+                    "Confirm Removal", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question);
+                
+                if (result == System.Windows.MessageBoxResult.Yes)
+                {
+                    FileItems.Remove(item);
+                    UpdateSummary();
+                }
             }
         }
 
@@ -359,27 +323,98 @@ namespace BoltFetch
                     _downloadManager.CancelDownload(item.Source.Id);
                     
                     // 2. Delete files from disk
-                    try
-                    {
-                        var filePath = Path.Combine(_settings.DownloadPath, item.Name);
-                        if (File.Exists(filePath)) File.Delete(filePath);
-                        
-                        // Clean up fragments (.part files)
-                        for (int i = 1; i <= 64; i++) // Scan a bit higher just in case
-                        {
-                            var partPath = filePath + ".part" + i;
-                            if (File.Exists(partPath)) File.Delete(partPath);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                    System.Windows.MessageBox.Show($"Error deleting files from disk: {ex.Message}");
-                    }
+                    DeleteFilesForDisplayItem(item);
 
                     // 3. Remove from UI list
                     FileItems.Remove(item);
                     UpdateSummary();
                 }
+            }
+        }
+
+        private void DeleteFilesForDisplayItem(FileDisplayItem item)
+        {
+            try
+            {
+                var filePath = Path.Combine(_settings.DownloadPath, item.Name);
+                if (File.Exists(filePath)) File.Delete(filePath);
+                
+                var downloadingPath = filePath + ".downloading";
+                if (File.Exists(downloadingPath)) File.Delete(downloadingPath);
+                
+                // Clean up fragments (.part files)
+                for (int i = 1; i <= 64; i++) // Scan a bit higher just in case
+                {
+                    var partPath = filePath + ".part" + i;
+                    if (File.Exists(partPath)) File.Delete(partPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error deleting files from disk: {ex.Message}");
+            }
+        }
+
+        private void SelectAll_Click(object sender, RoutedEventArgs e)
+        {
+            FilesDataGrid.SelectAll();
+        }
+
+        private void RemoveAll_Click(object sender, RoutedEventArgs e)
+        {
+            var itemsToRemove = FilesDataGrid.SelectedItems.Count > 0 
+                ? FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList() 
+                : FileItems.ToList(); // If none selected, act on all? User wants "Select All" -> they will probably select. Or "Remove All" means ALL.
+            
+            // Let's make "Remove All" act on all selected items if there are any, otherwise ALL items.
+            // Actually, naming is "Remove All", meaning it asks to remove everything.
+            string prompt = FilesDataGrid.SelectedItems.Count > 0 
+                ? $"Are you sure you want to remove the selected {FilesDataGrid.SelectedItems.Count} items from the list?"
+                : $"Are you sure you want to remove ALL {FileItems.Count} items from the list?";
+
+            var result = System.Windows.MessageBox.Show(prompt + "\n\n(This will NOT delete files from your PC)", 
+                "Confirm Mass Removal", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question);
+
+            if (result == System.Windows.MessageBoxResult.Yes)
+            {
+                var targetItems = FilesDataGrid.SelectedItems.Count > 0 
+                    ? FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList() 
+                    : FileItems.ToList();
+
+                foreach (var item in targetItems)
+                {
+                    FileItems.Remove(item);
+                }
+                UpdateSummary();
+            }
+        }
+
+        private void DeleteAll_Click(object sender, RoutedEventArgs e)
+        {
+            var itemsToDelete = FilesDataGrid.SelectedItems.Count > 0 
+                ? FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList() 
+                : FileItems.ToList();
+            
+            string prompt = FilesDataGrid.SelectedItems.Count > 0 
+                ? $"Are you sure you want to PERMANENTLY delete the selected {FilesDataGrid.SelectedItems.Count} items from disk AND list?"
+                : $"Are you sure you want to PERMANENTLY delete ALL {FileItems.Count} items from disk AND list?";
+
+            var result = System.Windows.MessageBox.Show(prompt + "\n\nThis cannot be undone.", 
+                "Confirm Mass Deletion", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+
+            if (result == System.Windows.MessageBoxResult.Yes)
+            {
+                var targetItems = FilesDataGrid.SelectedItems.Count > 0 
+                    ? FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList() 
+                    : FileItems.ToList();
+
+                foreach (var item in targetItems)
+                {
+                    _downloadManager.CancelDownload(item.Source.Id);
+                    DeleteFilesForDisplayItem(item);
+                    FileItems.Remove(item);
+                }
+                UpdateSummary();
             }
         }
 
@@ -414,7 +449,7 @@ namespace BoltFetch
                     item.ETAText = "Done";
                 }
                 UpdateSummary();
-                _ = ProcessQueue(); // Check for next items in queue
+                _ = _orchestrator.ProcessQueueAsync(FileItems); // Check for next items in queue
             });
         }
 
@@ -427,6 +462,9 @@ namespace BoltFetch
                 {
                     item.Status = "Error";
                     item.SpeedText = "0 KB/s";
+                    item.ProgressText = error;
+                    item.ProgressValue = 0;
+                    item.ETAText = "Failed";
                 }
                 UpdateSummary();
             });
@@ -441,6 +479,9 @@ namespace BoltFetch
                 {
                     item.Status = "Cancelled";
                     item.SpeedText = "0 KB/s";
+                    item.ProgressText = "User Cancelled";
+                    item.ProgressValue = 0;
+                    item.ETAText = "Cancelled";
                 }
                 UpdateSummary();
             });
@@ -461,7 +502,57 @@ namespace BoltFetch
             
             // Calculate Total Speed
             long totalSpeedBytes = FileItems.Where(i => i.Status == "Downloading...").Sum(i => i.SourceProgress?.SpeedBytesPerSecond ?? 0);
-            TotalSpeedText.Text = FormatSpeed(totalSpeedBytes);
+            TotalSpeedText.Text = FormatSpeed(totalSpeedBytes) + "/s";
+
+            // Update Graph up to twice per second
+            if ((DateTime.Now - _lastGraphUpdate).TotalSeconds >= 0.5)
+            {
+                _lastGraphUpdate = DateTime.Now;
+                _speedHistory.Add(totalSpeedBytes);
+                if (_speedHistory.Count > MaxHistoryPoints)
+                {
+                    _speedHistory.RemoveAt(0);
+                }
+                DrawSpeedGraph();
+            }
+        }
+
+        private void DrawSpeedGraph()
+        {
+            if (_speedHistory.Count < 2) return;
+
+            double width = SpeedGraphCanvas.ActualWidth;
+            double height = SpeedGraphCanvas.ActualHeight;
+
+            if (width <= 0 || height <= 0) return;
+
+            double maxSpeed = _speedHistory.Max();
+            if (maxSpeed == 0) maxSpeed = 1; // Prevent division by zero
+
+            var linePoints = new System.Windows.Media.PointCollection();
+            var fillPoints = new System.Windows.Media.PointCollection();
+
+            fillPoints.Add(new System.Windows.Point(0, height)); // Bottom-left corner (starting fill)
+
+            double stepX = width / (MaxHistoryPoints - 1);
+
+            for (int i = 0; i < _speedHistory.Count; i++)
+            {
+                int age = _speedHistory.Count - 1 - i;
+                double x = width - (age * stepX);
+                double y = height - ((_speedHistory[i] / maxSpeed) * height);
+                // Clamp Y
+                y = Math.Max(0, Math.Min(height, y));
+
+                var pt = new System.Windows.Point(x, y);
+                linePoints.Add(pt);
+                fillPoints.Add(pt);
+            }
+
+            fillPoints.Add(new System.Windows.Point(width, height)); // Bottom-right corner (ending fill)
+
+            SpeedGraphLine.Points = linePoints;
+            SpeedGraphFill.Points = fillPoints;
         }
 
         private string FormatSpeed(long bytes)
@@ -514,11 +605,11 @@ namespace BoltFetch
         public bool IsCompleted => Status == "Completed";
         public bool IsNotCompleted => !IsCompleted;
 
-        public DownloadProgress SourceProgress { get; set; }
+        public DownloadProgress? SourceProgress { get; set; }
 
         public FileDisplayItem(GoFileItem source) => Source = source;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

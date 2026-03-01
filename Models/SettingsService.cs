@@ -38,7 +38,6 @@ namespace BoltFetch.Models
                 if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
                 
                 var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
-                File.ReadAllText(SettingsFilePath); // Check if we can access
                 File.WriteAllText(SettingsFilePath, json);
             }
             catch { }

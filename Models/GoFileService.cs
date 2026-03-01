@@ -9,8 +9,21 @@ using Newtonsoft.Json.Linq;
 
 namespace BoltFetch.Models
 {
-    public class GoFileService
+    public class GoFileService : IDownloadProvider
     {
+        public string Name => "GoFile";
+        
+        public bool CanHandle(string url) => url.Contains("gofile.io/d/");
+
+        public async Task<List<GoFileItem>> FetchFilesAsync(string url)
+        {
+            var match = Regex.Match(url, @"/d/([a-zA-Z0-9]+)");
+            if (match.Success)
+            {
+                return await GetFolderContents(match.Groups[1].Value);
+            }
+            return new List<GoFileItem>();
+        }
         private static readonly HttpClient _httpClient = new HttpClient();
         private string _websiteToken = "";
         private string _guestToken = "";
@@ -60,7 +73,7 @@ namespace BoltFetch.Models
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
                 var json = JObject.Parse(content);
-                _guestToken = json["data"]?["token"]?.ToString();
+                _guestToken = json["data"]?["token"]?.ToString() ?? string.Empty;
 
                 if (string.IsNullOrEmpty(_guestToken))
                 {
@@ -104,11 +117,11 @@ namespace BoltFetch.Models
                     {
                         items.Add(new GoFileItem
                         {
-                            Id = child["id"]?.ToString(),
-                            Name = child["name"]?.ToString(),
+                            Id = child["id"]?.ToString() ?? string.Empty,
+                            Name = child["name"]?.ToString() ?? string.Empty,
                             Size = (long?)(child["size"] ?? 0) ?? 0,
-                            DownloadLink = child["link"]?.ToString(),
-                            Md5 = child["md5"]?.ToString(),
+                            DownloadLink = child["link"]?.ToString() ?? string.Empty,
+                            Md5 = child["md5"]?.ToString() ?? string.Empty,
                             Token = _guestToken
                         });
                     }
@@ -121,12 +134,12 @@ namespace BoltFetch.Models
 
     public class GoFileItem
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public long Size { get; set; }
-        public string DownloadLink { get; set; }
-        public string Md5 { get; set; }
-        public string Token { get; set; }
+        public string DownloadLink { get; set; } = string.Empty;
+        public string Md5 { get; set; } = string.Empty;
+        public string Token { get; set; } = string.Empty;
 
         public string SizeFormatted
         {

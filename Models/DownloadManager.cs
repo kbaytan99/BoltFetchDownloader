@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace BoltFetch.Models
@@ -27,10 +28,10 @@ namespace BoltFetch.Models
             _httpClient.DefaultRequestHeaders.Add("Referer", "https://gofile.io/");
         }
 
-        public event Action<string, DownloadProgress> ProgressChanged;
-        public event Action<string, string> DownloadCompleted;
-        public event Action<string, string> DownloadFailed;
-        public event Action<string> DownloadCancelled;
+        public event Action<string, DownloadProgress>? ProgressChanged;
+        public event Action<string, string>? DownloadCompleted;
+        public event Action<string, string>? DownloadFailed;
+        public event Action<string>? DownloadCancelled;
 
         public DownloadManager(int maxParallelDownloads = 3)
         {
@@ -76,7 +77,11 @@ namespace BoltFetch.Models
                 
                 if (supportsRange && item.Size > 1024 * 1024 && SegmentsPerFile > 1)
                 {
-                    await DownloadSegmentedAsync(item, destinationPath, progress, cts.Token);
+                    string tempPath = destinationPath + ".downloading";
+                    if (File.Exists(tempPath)) File.Delete(tempPath);
+                    await DownloadSegmentedAsync(item, tempPath, progress, cts.Token);
+                    if (File.Exists(destinationPath)) File.Delete(destinationPath);
+                    File.Move(tempPath, destinationPath);
                 }
                 else
                 {
@@ -175,61 +180,86 @@ namespace BoltFetch.Models
             }
         }
 
+        private struct FileWriteRequest
+        {
+            public byte[] Data;
+            public long Position;
+            public int Length;
+        }
+
         private async Task DownloadSegmentedAsync(GoFileItem item, string destinationPath, DownloadProgress progress, CancellationToken cancellationToken)
         {
-            var segmentSize = item.Size / SegmentsPerFile;
-            var tasks = new List<Task>();
-            var bytesDownloadedPerSegment = new long[SegmentsPerFile];
+            // --- TURBO BOOSTER: CHUNKED WORK STEALING ---
+            const long CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunks for agility
+            var chunks = new ConcurrentQueue<(long start, long end)>();
+            for (long start = 0; start < item.Size; start += CHUNK_SIZE)
+            {
+                long end = Math.Min(start + CHUNK_SIZE - 1, item.Size - 1);
+                chunks.Enqueue((start, end));
+            }
 
+            // --- TURBO BOOSTER: BUFFERED ASYNC WRITER ---
+            var writeChannel = Channel.CreateBounded<FileWriteRequest>(new BoundedChannelOptions(128) 
+            { 
+                FullMode = BoundedChannelFullMode.Wait 
+            });
+
+            var writerTask = Task.Run(async () => 
+            {
+                using var fs = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.Write, 65536, true);
+                fs.SetLength(item.Size);
+                await foreach (var req in writeChannel.Reader.ReadAllAsync(cancellationToken))
+                {
+                    fs.Seek(req.Position, SeekOrigin.Begin);
+                    await fs.WriteAsync(req.Data, 0, req.Length, cancellationToken);
+                }
+            });
+
+            var downloadTasks = new List<Task>();
             for (int i = 0; i < SegmentsPerFile; i++)
             {
-                var segmentIndex = i;
-                tasks.Add(Task.Run(async () =>
+                downloadTasks.Add(Task.Run(async () =>
                 {
-                    var partPath = destinationPath + ".part" + (segmentIndex + 1);
-                    long startOffset = segmentIndex * segmentSize;
-                    long endOffset = (segmentIndex == SegmentsPerFile - 1) ? item.Size - 1 : startOffset + segmentSize - 1;
-                    
-                    long existingPartSize = 0;
-                    if (File.Exists(partPath)) existingPartSize = new FileInfo(partPath).Length;
-                    
-                    if (existingPartSize >= (endOffset - startOffset + 1))
+                    var buffer = new byte[65536];
+                    while (chunks.TryDequeue(out var chunk))
                     {
-                        bytesDownloadedPerSegment[segmentIndex] = existingPartSize;
-                        return; // Segment complete
-                    }
-
-                    using (var request = new HttpRequestMessage(HttpMethod.Get, item.DownloadLink))
-                    {
-                        request.Headers.Add("Authorization", $"Bearer {item.Token}");
-                        request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(startOffset + existingPartSize, endOffset);
-
-                        using (var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                        try
                         {
-                            response.EnsureSuccessStatusCode();
-                            var mode = existingPartSize > 0 ? FileMode.Append : FileMode.Create;
-                            
-                            using (var stream = await response.Content.ReadAsStreamAsync(cancellationToken))
-                            using (var fileStream = new FileStream(partPath, mode, FileAccess.Write, FileShare.None, 16384, true))
-                            {
-                                var buffer = new byte[16384];
-                                int read;
-                                bytesDownloadedPerSegment[segmentIndex] = existingPartSize;
+                            using var request = new HttpRequestMessage(HttpMethod.Get, item.DownloadLink);
+                            request.Headers.Add("Authorization", $"Bearer {item.Token}");
+                            request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(chunk.start, chunk.end);
 
-                                    while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
-                                    {
-                                        await fileStream.WriteAsync(buffer, 0, read, cancellationToken);
-                                        bytesDownloadedPerSegment[segmentIndex] += read;
-                                        
-                                        // Periodic reporting update
-                                        progress.AddBytes(read);
-                                        
-                                        if (SpeedLimitKB > 0) 
-                                        {
-                                            await ThrottleInstant(read, SpeedLimitKB, cancellationToken);
-                                        }
-                                    }
+                            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                            response.EnsureSuccessStatusCode();
+
+                            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                            int read;
+                            long currentPos = chunk.start;
+
+                            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+                            {
+                                var dataCopy = new byte[read];
+                                Buffer.BlockCopy(buffer, 0, dataCopy, 0, read);
+                                
+                                await writeChannel.Writer.WriteAsync(new FileWriteRequest 
+                                { 
+                                    Data = dataCopy, 
+                                    Position = currentPos, 
+                                    Length = read 
+                                }, cancellationToken);
+
+                                currentPos += read;
+                                progress.AddBytes(read);
+
+                                if (SpeedLimitKB > 0)
+                                    await ThrottleInstant(read, SpeedLimitKB, cancellationToken);
                             }
+                        }
+                        catch (Exception)
+                        {
+                            // Re-queue chunk for another thread to try if failed
+                            chunks.Enqueue(chunk);
+                            throw; 
                         }
                     }
                 }, cancellationToken));
@@ -238,7 +268,7 @@ namespace BoltFetch.Models
             // Reporting loop
             var reportingTask = Task.Run(async () =>
             {
-                while (!tasks.All(t => t.IsCompleted))
+                while (!downloadTasks.All(t => t.IsCompleted))
                 {
                     progress.UpdateInstantSpeed();
                     ProgressChanged?.Invoke(item.Id, progress);
@@ -246,30 +276,12 @@ namespace BoltFetch.Models
                 }
             }, cancellationToken);
 
-            await Task.WhenAll(tasks);
-
-            // Merge segments
-            await MergeSegmentsAsync(destinationPath, item.Size);
+            await Task.WhenAll(downloadTasks);
+            writeChannel.Writer.Complete();
+            await writerTask;
         }
 
-        private async Task MergeSegmentsAsync(string destinationPath, long totalSize)
-        {
-            using (var finalFs = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, 65536, true))
-            {
-                finalFs.SetLength(totalSize);
-                for (int i = 0; i < SegmentsPerFile; i++)
-                {
-                    var partPath = destinationPath + ".part" + (i + 1);
-                    if (!File.Exists(partPath)) continue;
-
-                    using (var partFs = new FileStream(partPath, FileMode.Open, FileAccess.Read))
-                    {
-                        await partFs.CopyToAsync(finalFs);
-                    }
-                    File.Delete(partPath);
-                }
-            }
-        }
+        private Task MergeSegmentsAsync(string destinationPath, long totalSize) => Task.CompletedTask; // No longer needed
 
         private async Task CopyWithReporting(Stream source, Stream destination, string itemId, DownloadProgress progress, CancellationToken cancellationToken)
         {
@@ -310,7 +322,7 @@ namespace BoltFetch.Models
 
     public class DownloadProgress
     {
-        public string FileName { get; set; }
+        public string FileName { get; set; } = string.Empty;
         public long BytesDownloaded { get; set; }
         public long TotalBytes { get; set; }
         public long SpeedBytesPerSecond { get; set; }
