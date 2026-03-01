@@ -15,7 +15,10 @@ namespace BoltFetch.Services
 
         public void ShowMessage(string message)
         {
-            System.Windows.MessageBox.Show(message);
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                System.Windows.MessageBox.Show(message);
+            });
         }
     }
 }

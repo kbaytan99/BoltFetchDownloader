@@ -31,7 +31,6 @@ namespace BoltFetch
         public ObservableCollection<FileDisplayItem> FileItems { get; } = new ObservableCollection<FileDisplayItem>();
 
         private Forms.NotifyIcon? _notifyIcon;
-        private string _lastCapturedLink = string.Empty;
         
         // Speed Graph fields
         private readonly List<double> _speedHistory = new List<double>();
@@ -152,6 +151,8 @@ namespace BoltFetch
             base.OnStateChanged(e);
         }
 
+        #endregion
+
         #region General UI Methods
         private System.Drawing.Icon GetTrayIcon(System.IO.Stream stream)
         {
@@ -227,8 +228,6 @@ namespace BoltFetch
                 await FetchFilesBatch(dialog.Links);
             }
         }
-        #endregion
-
         #endregion
 
         #region Download Queue Initialization
@@ -322,7 +321,6 @@ namespace BoltFetch
             DownloadButton.IsEnabled = true;
         }
 
-        // StartDownload removed as it's now in DownloadOrchestrator
 
         private void StopItemButton_Click(object sender, RoutedEventArgs e)
         {
@@ -424,25 +422,19 @@ namespace BoltFetch
 
         private void RemoveAll_Click(object sender, RoutedEventArgs e)
         {
-            var itemsToRemove = FilesDataGrid.SelectedItems.Count > 0 
+            var targetItems = FilesDataGrid.SelectedItems.Count > 0 
                 ? FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList() 
-                : FileItems.ToList(); // If none selected, act on all? User wants "Select All" -> they will probably select. Or "Remove All" means ALL.
+                : FileItems.ToList();
             
-            // Let's make "Remove All" act on all selected items if there are any, otherwise ALL items.
-            // Actually, naming is "Remove All", meaning it asks to remove everything.
-            string prompt = FilesDataGrid.SelectedItems.Count > 0 
-                ? $"Are you sure you want to remove the selected {FilesDataGrid.SelectedItems.Count} items from the list?"
-                : $"Are you sure you want to remove ALL {FileItems.Count} items from the list?";
+            string prompt = targetItems.Count == FileItems.Count 
+                ? $"Are you sure you want to remove ALL {FileItems.Count} items from the list?"
+                : $"Are you sure you want to remove the selected {targetItems.Count} items from the list?";
 
             var result = System.Windows.MessageBox.Show(prompt + "\n\n(This will NOT delete files from your PC)", 
                 "Confirm Mass Removal", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question);
 
             if (result == System.Windows.MessageBoxResult.Yes)
             {
-                var targetItems = FilesDataGrid.SelectedItems.Count > 0 
-                    ? FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList() 
-                    : FileItems.ToList();
-
                 foreach (var item in targetItems)
                 {
                     FileItems.Remove(item);
@@ -453,23 +445,19 @@ namespace BoltFetch
 
         private void DeleteAll_Click(object sender, RoutedEventArgs e)
         {
-            var itemsToDelete = FilesDataGrid.SelectedItems.Count > 0 
+            var targetItems = FilesDataGrid.SelectedItems.Count > 0 
                 ? FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList() 
                 : FileItems.ToList();
             
-            string prompt = FilesDataGrid.SelectedItems.Count > 0 
-                ? $"Are you sure you want to PERMANENTLY delete the selected {FilesDataGrid.SelectedItems.Count} items from disk AND list?"
-                : $"Are you sure you want to PERMANENTLY delete ALL {FileItems.Count} items from disk AND list?";
+            string prompt = targetItems.Count == FileItems.Count 
+                ? $"Are you sure you want to PERMANENTLY delete ALL {FileItems.Count} items from disk AND list?"
+                : $"Are you sure you want to PERMANENTLY delete the selected {targetItems.Count} items from disk AND list?";
 
             var result = System.Windows.MessageBox.Show(prompt + "\n\nThis cannot be undone.", 
                 "Confirm Mass Deletion", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
 
             if (result == System.Windows.MessageBoxResult.Yes)
             {
-                var targetItems = FilesDataGrid.SelectedItems.Count > 0 
-                    ? FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList() 
-                    : FileItems.ToList();
-
                 foreach (var item in targetItems)
                 {
                     _downloadManager.CancelDownload(item.Source.Id);

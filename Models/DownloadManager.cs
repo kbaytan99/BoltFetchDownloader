@@ -151,7 +151,7 @@ namespace BoltFetch.Models
                 }
             }
 
-            HttpResponseMessage response = null;
+            HttpResponseMessage? response = null;
             for (int attempt = 1; attempt <= 5; attempt++)
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, item.DownloadLink);
@@ -178,6 +178,7 @@ namespace BoltFetch.Models
                 break;
             }
 
+            if (response == null) throw new HttpRequestException("Failed to get response after retries.");
             response.EnsureSuccessStatusCode();
 
             using (response)
@@ -238,7 +239,7 @@ namespace BoltFetch.Models
                     {
                         try
                         {
-                            HttpResponseMessage response = null;
+                            HttpResponseMessage? response = null;
                             for (int attempt = 1; attempt <= 5; attempt++)
                             {
                                 var request = new HttpRequestMessage(HttpMethod.Get, item.DownloadLink);
@@ -257,6 +258,7 @@ namespace BoltFetch.Models
                                 break;
                             }
 
+                            if (response == null) throw new HttpRequestException("Failed to get response after retries.");
                             response.EnsureSuccessStatusCode();
 
                             using (response)
@@ -287,9 +289,7 @@ namespace BoltFetch.Models
                         }
                         catch (Exception)
                         {
-                            // Re-queue chunk for another thread to try if failed
-                            chunks.Enqueue(chunk);
-                            throw; 
+                            throw; // Let Task.WhenAll handle the failure
                         }
                     }
                 }, cancellationToken));
@@ -310,8 +310,6 @@ namespace BoltFetch.Models
             writeChannel.Writer.Complete();
             await writerTask;
         }
-
-        private Task MergeSegmentsAsync(string destinationPath, long totalSize) => Task.CompletedTask; // No longer needed
 
         private async Task CopyWithReporting(Stream source, Stream destination, string itemId, DownloadProgress progress, CancellationToken cancellationToken)
         {

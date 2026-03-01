@@ -47,6 +47,7 @@
     <!-- Hakkinda Ekrani / About Window -->
     <system:String x:Key="Loc_AboutTitle">About BoltFetch</system:String>
     <system:String x:Key="Loc_AboutDesc">A lightning-fast, highly optimized multi-provider download manager built on modern WPF architecture.</system:String>
+    <system:String x:Key="Loc_AppVersion">Version 1.4.0</system:String>
     <system:String x:Key="Loc_AboutBtnOK">OK</system:String>
 
 </ResourceDictionary>

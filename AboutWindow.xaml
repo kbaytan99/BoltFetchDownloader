@@ -44,7 +44,7 @@
                     <Image Source="Resources/logo.png" Height="60" Margin="0,0,15,0" RenderOptions.BitmapScalingMode="HighQuality"/>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="BoltFetch" FontSize="28" FontWeight="Bold" Foreground="#3ABEF9"/>
-                        <TextBlock Text="Version 1.4.0" FontSize="14" Foreground="#94A3B8" FontWeight="SemiBold"/>
+                        <TextBlock Text="{DynamicResource Loc_AppVersion}" FontSize="14" Foreground="#94A3B8" FontWeight="SemiBold"/>
                     </StackPanel>
                 </StackPanel>
 

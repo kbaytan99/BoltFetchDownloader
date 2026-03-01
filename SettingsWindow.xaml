@@ -66,7 +66,7 @@
 
             <!-- Actions -->
             <StackPanel Grid.Row="2" Orientation="Vertical" Margin="0,20,0,0">
-                <TextBlock Text="Version 1.4.0" Foreground="#64748B" FontSize="10" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                <TextBlock Text="{DynamicResource Loc_AppVersion}" Foreground="#64748B" FontSize="10" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="CANCEL" Width="120" Height="45" Margin="0,0,15,0" Click="Cancel_Click" Background="Transparent" Foreground="#94A3B8" BorderThickness="1" BorderBrush="#334155" FontSize="12" FontWeight="Bold"/>
                     <Button Content="SAVE CHANGES" Width="160" Height="45" Click="Save_Click" Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontWeight="Bold" FontSize="12">
