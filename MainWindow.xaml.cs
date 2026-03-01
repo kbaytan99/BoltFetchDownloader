@@ -73,6 +73,24 @@ namespace BoltFetch
             // Restore column widths and saved download queue
             RestoreColumnWidths();
             RestoreQueue();
+
+            // Detect internet link speed
+            try
+            {
+                var nic = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(n => n.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up
+                        && n.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
+                    .OrderByDescending(n => n.Speed)
+                    .FirstOrDefault();
+                if (nic != null)
+                {
+                    double speedMbps = nic.Speed / 1_000_000.0;
+                    InternetSpeedText.Text = speedMbps >= 1000
+                        ? $"↓ {speedMbps / 1000:F1} Gbps"
+                        : $"↓ {speedMbps:F0} Mbps";
+                }
+            }
+            catch { InternetSpeedText.Text = "-"; }
         }
 
         #region Title Bar Controls
@@ -243,6 +261,13 @@ namespace BoltFetch
                 .Where(d => d.Source != null && d.Source.OriginalString.StartsWith("Locales/")).ToList();
             foreach (var d in toRemove) System.Windows.Application.Current.Resources.MergedDictionaries.Remove(d);
             System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
+
+            // Force DataGrid column headers to refresh (they don't auto-update DynamicResource)
+            string[] headerKeys = { "Loc_ColName", "Loc_ColSize", "Loc_ColProgress", "Loc_ColSpeed", "Loc_ColETA", "Loc_ColStatus", "Loc_ColControls" };
+            for (int i = 0; i < FilesDataGrid.Columns.Count && i < headerKeys.Length; i++)
+            {
+                FilesDataGrid.Columns[i].Header = FindResource(headerKeys[i]);
+            }
         }
 
         private async void AddButton_Click(object sender, RoutedEventArgs e)
@@ -384,10 +409,7 @@ namespace BoltFetch
         {
             if (sender is FrameworkElement element && element.DataContext is FileDisplayItem item)
             {
-                var result = System.Windows.MessageBox.Show($"Are you sure you want to remove '{item.Name}' from the list?\n\n(This will NOT delete the file from your PC)", 
-                    "Confirm Removal", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question);
-                
-                if (result == System.Windows.MessageBoxResult.Yes)
+                if (ConfirmDialog.Show(this, "Remove Item", $"Remove '{item.Name}' from the list?\n\nThe file will NOT be deleted from your PC.", "Remove"))
                 {
                     FileItems.Remove(item);
                     UpdateSummary();
@@ -399,10 +421,7 @@ namespace BoltFetch
         {
             if (sender is FrameworkElement element && element.DataContext is FileDisplayItem item)
             {
-                var result = System.Windows.MessageBox.Show($"Are you sure you want to PERMANENTLY delete '{item.Name}' from disk AND list?\n\nThis cannot be undone.", 
-                    "Confirm Permanent Deletion", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
-                
-                if (result == System.Windows.MessageBoxResult.Yes)
+                if (ConfirmDialog.Show(this, "Permanent Deletion", $"PERMANENTLY delete '{item.Name}' from disk AND list?\n\nThis cannot be undone.", "Delete", isDanger: true))
                 {
                     // 1. Cancel if active
                     _downloadManager.CancelDownload(item.Source.Id);
@@ -455,10 +474,7 @@ namespace BoltFetch
                 ? $"Are you sure you want to remove ALL {FileItems.Count} items from the list?"
                 : $"Are you sure you want to remove the selected {targetItems.Count} items from the list?";
 
-            var result = System.Windows.MessageBox.Show(prompt + "\n\n(This will NOT delete files from your PC)", 
-                "Confirm Mass Removal", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question);
-
-            if (result == System.Windows.MessageBoxResult.Yes)
+            if (ConfirmDialog.Show(this, "Remove Items", prompt + "\n\nFiles will NOT be deleted from your PC.", "Remove"))
             {
                 foreach (var item in targetItems)
                 {
@@ -478,10 +494,7 @@ namespace BoltFetch
                 ? $"Are you sure you want to PERMANENTLY delete ALL {FileItems.Count} items from disk AND list?"
                 : $"Are you sure you want to PERMANENTLY delete the selected {targetItems.Count} items from disk AND list?";
 
-            var result = System.Windows.MessageBox.Show(prompt + "\n\nThis cannot be undone.", 
-                "Confirm Mass Deletion", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
-
-            if (result == System.Windows.MessageBoxResult.Yes)
+            if (ConfirmDialog.Show(this, "Permanent Deletion", prompt + "\n\nThis cannot be undone.", "Delete All", isDanger: true))
             {
                 foreach (var item in targetItems)
                 {

@@ -13,16 +13,30 @@ namespace BoltFetch.Models
 {
     public class DownloadManager
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient;
         private SemaphoreSlim _semaphore;
         private readonly ConcurrentDictionary<string, DownloadProgress> _progressMap = new ConcurrentDictionary<string, DownloadProgress>();
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _cancellationMap = new ConcurrentDictionary<string, CancellationTokenSource>();
+
+        private const int BUFFER_SIZE = 256 * 1024; // 256KB buffer for high-speed connections
 
         public int SpeedLimitKB { get; set; } = 0;
         public int SegmentsPerFile { get; set; } = 4;
 
         static DownloadManager()
         {
+            var handler = new SocketsHttpHandler
+            {
+                MaxConnectionsPerServer = 64,
+                EnableMultipleHttp2Connections = true,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+                PooledConnectionIdleTimeout = TimeSpan.FromMinutes(5),
+                ConnectTimeout = TimeSpan.FromSeconds(15)
+            };
+            _httpClient = new HttpClient(handler)
+            {
+                Timeout = TimeSpan.FromHours(12)
+            };
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36");
             _httpClient.DefaultRequestHeaders.Add("Origin", "https://gofile.io");
             _httpClient.DefaultRequestHeaders.Add("Referer", "https://gofile.io/");
@@ -187,7 +201,7 @@ namespace BoltFetch.Models
                             ? FileMode.Append : FileMode.Create;
 
                 using (var stream = await response.Content.ReadAsStreamAsync(cancellationToken))
-                using (var fileStream = new FileStream(destinationPath, mode, FileAccess.Write, FileShare.None, 16384, true))
+                using (var fileStream = new FileStream(destinationPath, mode, FileAccess.Write, FileShare.None, BUFFER_SIZE, true))
                 {
                     await CopyWithReporting(stream, fileStream, item.Id, progress, cancellationToken);
                 }
@@ -204,7 +218,7 @@ namespace BoltFetch.Models
         private async Task DownloadSegmentedAsync(GoFileItem item, string destinationPath, DownloadProgress progress, CancellationToken cancellationToken)
         {
             // --- TURBO BOOSTER: CHUNKED WORK STEALING ---
-            const long CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunks for agility
+            const long CHUNK_SIZE = 4 * 1024 * 1024; // 4MB chunks for high-speed connections
             var chunks = new ConcurrentQueue<(long start, long end)>();
             for (long start = 0; start < item.Size; start += CHUNK_SIZE)
             {
@@ -213,14 +227,14 @@ namespace BoltFetch.Models
             }
 
             // --- TURBO BOOSTER: BUFFERED ASYNC WRITER ---
-            var writeChannel = Channel.CreateBounded<FileWriteRequest>(new BoundedChannelOptions(128) 
+            var writeChannel = Channel.CreateBounded<FileWriteRequest>(new BoundedChannelOptions(256) 
             { 
                 FullMode = BoundedChannelFullMode.Wait 
             });
 
             var writerTask = Task.Run(async () => 
             {
-                using var fs = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.Write, 65536, true);
+                using var fs = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.Write, BUFFER_SIZE, true);
                 fs.SetLength(item.Size);
                 await foreach (var req in writeChannel.Reader.ReadAllAsync(cancellationToken))
                 {
@@ -234,7 +248,7 @@ namespace BoltFetch.Models
             {
                 downloadTasks.Add(Task.Run(async () =>
                 {
-                    var buffer = new byte[65536];
+                    var buffer = new byte[BUFFER_SIZE];
                     while (chunks.TryDequeue(out var chunk))
                     {
                         try

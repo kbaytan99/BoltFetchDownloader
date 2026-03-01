@@ -258,43 +258,43 @@
                 <DataGridTextColumn Header="{DynamicResource Loc_ColSpeed}" Binding="{Binding SpeedText}" Width="Auto" MinWidth="110" IsReadOnly="True" FontSize="13"/>
                 <DataGridTextColumn Header="{DynamicResource Loc_ColETA}" Binding="{Binding ETAText}" Width="Auto" MinWidth="90" IsReadOnly="True" FontSize="13"/>
                 <DataGridTextColumn Header="{DynamicResource Loc_ColStatus}" Binding="{Binding Status}" Width="Auto" MinWidth="140" IsReadOnly="True" FontSize="13" Foreground="#AAA"/>
-                <DataGridTemplateColumn Header="{DynamicResource Loc_ColControls}" Width="340">
+                <DataGridTemplateColumn Header="{DynamicResource Loc_ColControls}" Width="260">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <!-- Active Download Controls -->
                                 <StackPanel Orientation="Horizontal" Visibility="{Binding IsNotCompleted, Converter={StaticResource BoolToVis}}">
-                                    <Button x:Name="StartItemButton" Content="{DynamicResource Loc_RowStart}" Width="55" Height="30" Margin="2" 
-                                            Background="#16A34A" Foreground="White" BorderThickness="0" FontSize="11" FontWeight="Bold"
-                                            Click="RetryItemButton_Click" ToolTip="Start/Resume">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="15"/></Style></Button.Resources>
+                                    <Button Width="42" Height="32" Margin="3,0" Click="RetryItemButton_Click" ToolTip="Start / Resume" Cursor="Hand"
+                                            Background="#0D9F5F" Foreground="White" BorderThickness="0" FontSize="15">
+                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                                        <TextBlock Text="▶" FontSize="13" FontFamily="Segoe UI Emoji"/>
                                     </Button>
-                                    <Button x:Name="StopItemButton" Content="{DynamicResource Loc_RowStop}" Width="55" Height="30" Margin="2" 
-                                            Background="#B91C1C" Foreground="White" BorderThickness="0" FontSize="11" FontWeight="Bold"
-                                            Click="StopItemButton_Click" ToolTip="Stop Download">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="15"/></Style></Button.Resources>
+                                    <Button Width="42" Height="32" Margin="3,0" Click="StopItemButton_Click" ToolTip="Stop" Cursor="Hand"
+                                            Background="#B91C1C" Foreground="White" BorderThickness="0" FontSize="15">
+                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                                        <TextBlock Text="⏹" FontSize="13" FontFamily="Segoe UI Emoji"/>
                                     </Button>
                                 </StackPanel>
                                 
                                 <!-- File Management Controls (Completed Only) -->
                                 <StackPanel Orientation="Horizontal" Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVis}}">
-                                    <Button x:Name="LocateItemButton" Content="{DynamicResource Loc_RowOpen}" Width="80" Height="30" Margin="2" 
-                                            Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontSize="11" FontWeight="Bold"
-                                            Click="LocateItemButton_Click" ToolTip="Locate File in Folder">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="15"/></Style></Button.Resources>
+                                    <Button Width="42" Height="32" Margin="3,0" Click="LocateItemButton_Click" ToolTip="Open File Location" Cursor="Hand"
+                                            Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontSize="15">
+                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                                        <TextBlock Text="📂" FontSize="13" FontFamily="Segoe UI Emoji"/>
                                     </Button>
                                 </StackPanel>
                                 
                                 <!-- Universal Actions -->
-                                <Button x:Name="RemoveItemButton" Content="{DynamicResource Loc_RowRemove}" Width="70" Height="30" Margin="2" 
-                                        Background="#334155" Foreground="#CBD5E1" BorderThickness="0" FontSize="11" FontWeight="Bold"
-                                        Click="RemoveItem_Click" ToolTip="Remove from list only (keeps file on disk)">
-                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="15"/></Style></Button.Resources>
+                                <Button Width="42" Height="32" Margin="3,0" Click="RemoveItem_Click" ToolTip="Remove from list" Cursor="Hand"
+                                        Background="#334155" Foreground="#94A3B8" BorderThickness="0" FontSize="15">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                                    <TextBlock Text="✕" FontSize="14" FontWeight="Bold" Foreground="#94A3B8"/>
                                 </Button>
-                                <Button x:Name="DeleteItemButton" Content="{DynamicResource Loc_RowDelete}" Width="70" Height="30" Margin="2" 
-                                        Background="#991B1B" Foreground="#FECACA" BorderThickness="0" FontSize="11" FontWeight="Bold"
-                                        Click="DeleteItemButton_Click" ToolTip="Permanently delete from list and disk">
-                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="15"/></Style></Button.Resources>
+                                <Button Width="42" Height="32" Margin="3,0" Click="DeleteItemButton_Click" ToolTip="Delete from disk" Cursor="Hand"
+                                        Background="#7F1D1D" Foreground="#FECACA" BorderThickness="0" FontSize="15">
+                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                                    <TextBlock Text="🗑" FontSize="13" FontFamily="Segoe UI Emoji"/>
                                 </Button>
                             </StackPanel>
                         </DataTemplate>
@@ -394,6 +394,8 @@
                     <TextBlock x:Name="ParallelLimitText" Text="3" Foreground="#3ABEF9" FontSize="13" FontWeight="Bold"/>
                     <TextBlock Text="{DynamicResource Loc_FooterVersion}" Foreground="#64748B" FontSize="13" Margin="10,0,5,0"/>
                     <TextBlock Text="{DynamicResource Loc_AppVersion}" Foreground="#FFD700" FontSize="13" FontWeight="Bold"/>
+                    <TextBlock Text="  ⚡" Foreground="#64748B" FontSize="13" Margin="10,0,3,0"/>
+                    <TextBlock x:Name="InternetSpeedText" Text="-" Foreground="#4ADE80" FontSize="13" FontWeight="Bold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                     <TextBlock Text="{DynamicResource Loc_FooterFolder}" Foreground="#64748B" FontSize="12" Margin="0,0,5,0"/>
