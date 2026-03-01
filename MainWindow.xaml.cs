@@ -36,6 +36,8 @@ namespace BoltFetch
         private readonly List<double> _speedHistory = new List<double>();
         private const int MaxHistoryPoints = 60;
         private DateTime _lastGraphUpdate = DateTime.MinValue;
+        private System.Windows.Point _dragStartPoint;
+        private FileDisplayItem? _draggedItem;
 
         public MainWindow()
         {
@@ -227,6 +229,13 @@ namespace BoltFetch
             }
         }
 
+
+        private void HistoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new HistoryWindow();
+            win.Owner = this;
+            win.ShowDialog();
+        }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
@@ -507,6 +516,63 @@ namespace BoltFetch
         }
         #endregion
 
+        #region Drag & Drop Reordering
+        private void FilesDataGrid_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            _dragStartPoint = e.GetPosition(null);
+        }
+
+        private void FilesDataGrid_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+            {
+                System.Windows.Point currentPoint = e.GetPosition(null);
+                if (Math.Abs(currentPoint.X - _dragStartPoint.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                    Math.Abs(currentPoint.Y - _dragStartPoint.Y) > SystemParameters.MinimumVerticalDragDistance)
+                {
+                    _draggedItem = GetDataGridItemUnderMouse(e.GetPosition(FilesDataGrid));
+                    if (_draggedItem != null)
+                    {
+                        DragDrop.DoDragDrop(FilesDataGrid, _draggedItem, System.Windows.DragDropEffects.Move);
+                    }
+                }
+            }
+        }
+
+        private void FilesDataGrid_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            if (_draggedItem == null) return;
+
+            var targetItem = GetDataGridItemUnderMouse(e.GetPosition(FilesDataGrid));
+            if (targetItem != null && targetItem != _draggedItem)
+            {
+                int oldIndex = FileItems.IndexOf(_draggedItem);
+                int newIndex = FileItems.IndexOf(targetItem);
+
+                if (oldIndex != -1 && newIndex != -1)
+                {
+                    FileItems.Move(oldIndex, newIndex);
+                    SaveQueue(); // Save new order
+                }
+            }
+            _draggedItem = null;
+        }
+
+        private FileDisplayItem? GetDataGridItemUnderMouse(System.Windows.Point pos)
+        {
+            var hitTestResult = VisualTreeHelper.HitTest(FilesDataGrid, pos);
+            if (hitTestResult == null) return null;
+
+            var element = hitTestResult.VisualHit;
+            while (element != null && !(element is DataGridRow))
+            {
+                element = VisualTreeHelper.GetParent(element);
+            }
+
+            return (element as DataGridRow)?.Item as FileDisplayItem;
+        }
+        #endregion
+
         #region Download Orchestration Callbacks
         private void OnDownloadProgressChanged(string itemId, DownloadProgress progress)
         {
@@ -593,7 +659,7 @@ namespace BoltFetch
             FinishedCountText.Text = finished.ToString();
 
             // Downloaded / Remaining
-            long downloadedBytes = FileItems.Sum(i => i.SourceProgress?.BytesDownloaded ?? (i.Status == "Completed" ? i.Source.Size : 0));
+            long downloadedBytes = FileItems.Sum(i => i.SourceProgress?.BytesDownloaded ?? i.BytesDownloaded);
             long remainingBytes = Math.Max(0, totalBytes - downloadedBytes);
             DownloadedSizeText.Text = FormatSizeGB(downloadedBytes);
             RemainingSizeText.Text = FormatSizeGB(remainingBytes);
@@ -711,7 +777,8 @@ namespace BoltFetch
                 Md5 = item.Source.Md5,
                 Token = item.Source.Token,
                 Status = item.Status == "Downloading..." ? "Pending" : item.Status,
-                ProgressValue = item.ProgressValue
+                ProgressValue = item.ProgressValue,
+                BytesDownloaded = item.SourceProgress?.BytesDownloaded ?? item.BytesDownloaded
             }).ToList();
             Services.QueuePersistenceService.Save(dtos);
         }
@@ -734,6 +801,7 @@ namespace BoltFetch
                 {
                     Status = dto.Status == "Downloading..." ? "Pending" : dto.Status,
                     ProgressValue = dto.ProgressValue,
+                    BytesDownloaded = dto.BytesDownloaded,
                     ProgressText = $"{dto.ProgressValue:F1}%"
                 };
                 FileItems.Add(displayItem);
@@ -776,6 +844,8 @@ namespace BoltFetch
 
         public bool IsCompleted => Status == "Completed";
         public bool IsNotCompleted => !IsCompleted;
+
+        public long BytesDownloaded { get; set; }
 
         public DownloadProgress? SourceProgress { get; set; }
 

@@ -52,4 +52,13 @@
     <system:String x:Key="Loc_AppVersion">Version 1.4.0</system:String>
     <system:String x:Key="Loc_AboutBtnOK">OK</system:String>
 
+    <!-- History Window -->
+    <system:String x:Key="Loc_HistoryTitle">Download History</system:String>
+    <system:String x:Key="Loc_HistoryEmpty">No history available yet.</system:String>
+    <system:String x:Key="Loc_HistColDate">Date</system:String>
+    <system:String x:Key="Loc_HistColName">File Name</system:String>
+    <system:String x:Key="Loc_HistColSize">Size</system:String>
+    <system:String x:Key="Loc_HistColCat">Category</system:String>
+    <system:String x:Key="Loc_BtnHistory">History</system:String>
+    <system:String x:Key="Loc_HistTotalDisp">Total Downloaded:</system:String>
 </ResourceDictionary>

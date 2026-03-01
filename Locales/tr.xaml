@@ -52,4 +52,13 @@
     <system:String x:Key="Loc_AppVersion">Sürüm 1.4.0</system:String>
     <system:String x:Key="Loc_AboutBtnOK">Tamam</system:String>
 
+    <!-- History Window -->
+    <system:String x:Key="Loc_HistoryTitle">İndirme Geçmişi</system:String>
+    <system:String x:Key="Loc_HistoryEmpty">Henüz indirme geçmişi yok.</system:String>
+    <system:String x:Key="Loc_HistColDate">Tarih</system:String>
+    <system:String x:Key="Loc_HistColName">Dosya Adı</system:String>
+    <system:String x:Key="Loc_HistColSize">Boyut</system:String>
+    <system:String x:Key="Loc_HistColCat">Kategori</system:String>
+    <system:String x:Key="Loc_BtnHistory">Geçmiş</system:String>
+    <system:String x:Key="Loc_HistTotalDisp">Toplam İndirilen:</system:String>
 </ResourceDictionary>

@@ -34,7 +34,11 @@ namespace BoltFetch.Services
             {
                 while (true)
                 {
-                    var queuedItems = items.Where(i => i.Status == "Queued").ToList();
+                    var queuedItems = items.Where(i => i.Status == "Queued" || i.Status == "Pending")
+                        .OrderByDescending(i => i.ProgressValue > 0) // Resume partially downloaded first
+                        .ThenBy(i => i.Source.Size) // Smaller files first for quick completion
+                        .ToList();
+                    
                     if (!queuedItems.Any()) break;
 
                     int activeCount = items.Count(i => i.Status == "Downloading...");

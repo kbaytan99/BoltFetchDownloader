@@ -140,11 +140,25 @@
                     </Button.Resources>
                 </Button>
                 
+                <Button x:Name="HistoryButton" Style="{StaticResource ModernButton}" 
+                        Width="110" Height="38" Click="HistoryButton_Click" Margin="0,0,10,0"
+                        Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{DynamicResource Loc_BtnHistory}" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#CBD5E1"/>
+                        <TextBlock Text="🕒" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9" FontFamily="Segoe UI Emoji"/>
+                    </StackPanel>
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="19"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                
                 <Button x:Name="SettingsButton" Style="{StaticResource ModernButton}" 
                         Width="110" Height="38" Click="SettingsButton_Click"
                         Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Settings" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#CBD5E1"/>
+                        <TextBlock Text="{DynamicResource Loc_BtnSettings}" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#CBD5E1"/>
                         <TextBlock Text="⚙" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9"/>
                     </StackPanel>
                     <Button.Resources>
@@ -163,7 +177,11 @@
         <!-- File List -->
         <DataGrid x:Name="FilesDataGrid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False"
                   Background="Transparent" RowBackground="Transparent" BorderThickness="0"
-                  HeadersVisibility="Column" SelectionMode="Extended" RowHeight="50" GridLinesVisibility="None">
+                  HeadersVisibility="Column" SelectionMode="Extended" RowHeight="50" GridLinesVisibility="None"
+                  AllowDrop="True"
+                  PreviewMouseLeftButtonDown="FilesDataGrid_PreviewMouseLeftButtonDown"
+                  MouseMove="FilesDataGrid_MouseMove"
+                  Drop="FilesDataGrid_Drop">
             <DataGrid.Resources>
                 <Style TargetType="DataGridColumnHeader">
                     <Setter Property="Background" Value="#1E293B"/>
@@ -396,6 +414,8 @@
                     <TextBlock Text="{DynamicResource Loc_AppVersion}" Foreground="#FFD700" FontSize="13" FontWeight="Bold"/>
                     <TextBlock Text="  ⚡" Foreground="#64748B" FontSize="13" Margin="10,0,3,0"/>
                     <TextBlock x:Name="InternetSpeedText" Text="-" Foreground="#4ADE80" FontSize="13" FontWeight="Bold"/>
+                    <TextBlock Text="  🧠" FontFamily="Segoe UI Emoji" Foreground="#64748B" FontSize="13" Margin="10,0,3,0"/>
+                    <TextBlock Text="Smart Engine" Foreground="#A78BFA" FontSize="13" FontWeight="SemiBold"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                     <TextBlock Text="{DynamicResource Loc_FooterFolder}" Foreground="#64748B" FontSize="12" Margin="0,0,5,0"/>

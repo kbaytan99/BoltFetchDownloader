@@ -74,33 +74,63 @@ namespace BoltFetch.Models
             _cancellationMap[item.Id] = cts;
 
             await _semaphore.WaitAsync(cts.Token);
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             try
             {
-                var destinationPath = Path.Combine(destinationFolder, item.Name);
-                if (!Directory.Exists(destinationFolder)) Directory.CreateDirectory(destinationFolder);
+                // SmartEngine: auto-categorize into subfolder
+                var category = Services.SmartEngine.CategorizeFile(item.Name);
+                var finalFolder = Path.Combine(destinationFolder, category);
+                if (!Directory.Exists(finalFolder)) Directory.CreateDirectory(finalFolder);
+
+                var destinationPath = Path.Combine(finalFolder, item.Name);
+
+                // SmartEngine: get optimal segment count
+                var serverDomain = "";
+                try { serverDomain = new Uri(item.DownloadLink).Host; } catch { }
+                int smartSegments = Services.SmartEngine.GetOptimalSegments(item.Size, serverDomain, SegmentsPerFile);
 
                 var progress = new DownloadProgress { FileName = item.Name, TotalBytes = item.Size };
                 _progressMap[item.Id] = progress;
 
                 // Sync existing bytes for UI
-                UpdateProgressFromExistingParts(item, destinationFolder, progress);
+                UpdateProgressFromExistingParts(item, finalFolder, progress);
                 ProgressChanged?.Invoke(item.Id, progress);
 
                 // 1. Check if server supports Range requests
                 bool supportsRange = await CheckRangeSupport(item.DownloadLink, item.Token, cts.Token);
                 
-                if (supportsRange && item.Size > 1024 * 1024 && SegmentsPerFile > 1)
+                int savedSegments = SegmentsPerFile;
+                SegmentsPerFile = smartSegments;
+                try
                 {
-                    string tempPath = destinationPath + ".downloading";
-                    if (File.Exists(tempPath)) File.Delete(tempPath);
-                    await DownloadSegmentedAsync(item, tempPath, progress, cts.Token);
-                    if (File.Exists(destinationPath)) File.Delete(destinationPath);
-                    File.Move(tempPath, destinationPath);
+                    if (supportsRange && item.Size > 1024 * 1024 && SegmentsPerFile > 1)
+                    {
+                        string tempPath = destinationPath + ".downloading";
+                        if (File.Exists(tempPath)) File.Delete(tempPath);
+                        await DownloadSegmentedAsync(item, tempPath, progress, cts.Token);
+                        if (File.Exists(destinationPath)) File.Delete(destinationPath);
+                        File.Move(tempPath, destinationPath);
+                    }
+                    else
+                    {
+                        await DownloadSingleStreamAsync(item, destinationPath, progress, cts.Token, supportsRange);
+                    }
                 }
-                else
+                finally { SegmentsPerFile = savedSegments; }
+
+                stopwatch.Stop();
+
+                // SmartEngine: log for future optimization
+                Services.SmartEngine.LogDownload(new Services.DownloadRecord
                 {
-                    await DownloadSingleStreamAsync(item, destinationPath, progress, cts.Token, supportsRange);
-                }
+                    FileName = item.Name,
+                    FileSize = item.Size,
+                    ServerDomain = serverDomain,
+                    SegmentsUsed = smartSegments,
+                    AverageSpeedMBps = item.Size / (1024.0 * 1024) / Math.Max(stopwatch.Elapsed.TotalSeconds, 0.1),
+                    DurationSeconds = stopwatch.Elapsed.TotalSeconds,
+                    Category = category
+                });
 
                 DownloadCompleted?.Invoke(item.Id, destinationPath);
             }

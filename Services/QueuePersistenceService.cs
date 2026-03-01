@@ -16,6 +16,7 @@ namespace BoltFetch.Services
         public string Token { get; set; } = string.Empty;
         public string Status { get; set; } = "Pending";
         public double ProgressValue { get; set; }
+        public long BytesDownloaded { get; set; }
     }
 
     public static class QueuePersistenceService
