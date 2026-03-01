@@ -64,6 +64,15 @@ namespace BoltFetch
             }
         }
 
+        private void ReportBug_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "https://github.com/kbaytan99/BoltFetch-Downloader/issues/new",
+                UseShellExecute = true
+            });
+        }
+
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;

@@ -70,8 +70,9 @@ namespace BoltFetch
             // Load saved language
             ApplyLanguage(_settings.Language);
 
-            // Restore column widths
+            // Restore column widths and saved download queue
             RestoreColumnWidths();
+            RestoreQueue();
         }
 
         #region Title Bar Controls
@@ -681,8 +682,50 @@ namespace BoltFetch
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             SaveColumnWidths();
+            SaveQueue();
             _notifyIcon?.Dispose();
             base.OnClosing(e);
+        }
+
+        private void SaveQueue()
+        {
+            var dtos = FileItems.Select(item => new Services.QueueItemDto
+            {
+                Id = item.Source.Id,
+                Name = item.Source.Name,
+                Size = item.Source.Size,
+                DownloadLink = item.Source.DownloadLink,
+                Md5 = item.Source.Md5,
+                Token = item.Source.Token,
+                Status = item.Status == "Downloading..." ? "Pending" : item.Status,
+                ProgressValue = item.ProgressValue
+            }).ToList();
+            Services.QueuePersistenceService.Save(dtos);
+        }
+
+        private void RestoreQueue()
+        {
+            var saved = Services.QueuePersistenceService.Load();
+            foreach (var dto in saved)
+            {
+                var goFileItem = new GoFileItem
+                {
+                    Id = dto.Id,
+                    Name = dto.Name,
+                    Size = dto.Size,
+                    DownloadLink = dto.DownloadLink,
+                    Md5 = dto.Md5,
+                    Token = dto.Token
+                };
+                var displayItem = new FileDisplayItem(goFileItem)
+                {
+                    Status = dto.Status == "Downloading..." ? "Pending" : dto.Status,
+                    ProgressValue = dto.ProgressValue,
+                    ProgressText = $"{dto.ProgressValue:F1}%"
+                };
+                FileItems.Add(displayItem);
+            }
+            UpdateSummary();
         }
         #endregion
     }
