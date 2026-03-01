@@ -53,5 +53,10 @@ namespace BoltFetch
             DialogResult = true;
             Close();
         }
+
+        private void Window_Deactivated(object sender, System.EventArgs e)
+        {
+            try { Close(); } catch { }
+        }
     }
 }

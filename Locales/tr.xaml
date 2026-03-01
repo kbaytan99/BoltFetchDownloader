@@ -39,6 +39,7 @@
     <system:String x:Key="Loc_BtnRemoveAll">Tümünü Kaldır</system:String>
     <system:String x:Key="Loc_BtnDeleteAll">Tümünü Sil</system:String>
     <system:String x:Key="Loc_BtnStartSelected">SEÇİLENLERİ BAŞLAT</system:String>
+    <system:String x:Key="Loc_BtnStopAll">TÜMÜNÜ DURDUR</system:String>
 
     <!-- Tepsi Menüsü -->
     <system:String x:Key="Loc_TraySettings">Ayarlar</system:String>

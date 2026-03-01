@@ -485,6 +485,22 @@ namespace BoltFetch
             FilesDataGrid.SelectAll();
         }
 
+        private void StopAll_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var item in FileItems)
+            {
+                if (item.Status == "Downloading...")
+                {
+                    _downloadManager.CancelDownload(item.Source.Id);
+                }
+                else if (item.Status == "Queued" || item.Status == "Pending")
+                {
+                    item.Status = "Stopped";
+                }
+            }
+            UpdateSummary();
+        }
+
         private void RemoveAll_Click(object sender, RoutedEventArgs e)
         {
             var targetItems = FilesDataGrid.SelectedItems.Count > 0 
@@ -695,9 +711,10 @@ namespace BoltFetch
             DownloadedSizeText.Text = FormatSizeGB(downloadedBytes);
             RemainingSizeText.Text = FormatSizeGB(remainingBytes);
 
-            // Calculate Total Speed
-            long totalSpeedBytes = FileItems.Where(i => i.Status == "Downloading...").Sum(i => i.SourceProgress?.SpeedBytesPerSecond ?? 0);
+            // Calculate Total Speed using real-time isolated Speedometer
+            long totalSpeedBytes = BoltFetch.Services.Speedometer.GetCurrentSpeed();
             TotalSpeedText.Text = FormatSpeed(totalSpeedBytes) + "/s";
+            InternetSpeedText.Text = FormatSpeed(totalSpeedBytes) + "/s"; // Set the footer speed as requested
 
             // Update Graph up to twice per second
             if ((DateTime.Now - _lastGraphUpdate).TotalSeconds >= 0.5)

@@ -1,11 +1,11 @@
 <Window x:Class="BoltFetch.AddLinkWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Add Links" Height="300" Width="550"
+        Title="Add Links" Height="400" Width="600"
         WindowStartupLocation="CenterOwner"
         Background="#0F172A" Foreground="#E2E8F0"
         WindowStyle="None" AllowsTransparency="True"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize" Deactivated="Window_Deactivated">
     
     <Window.Resources>
         <!-- Modern Button Style -->

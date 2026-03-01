@@ -163,6 +163,14 @@ namespace BoltFetch.Services
         }
 
         /// <summary>
+        /// Reads hardware telemetry from SystemProfiler to determine the absolute optimal MaxParallelDownloads count.
+        /// </summary>
+        public static int GetHardwareOptimizedParallelDownloads()
+        {
+            return SystemProfiler.GetOptimalParallelDownloads();
+        }
+
+        /// <summary>
         /// Log a completed download for future optimization.
         /// </summary>
         public static void LogDownload(DownloadRecord record)

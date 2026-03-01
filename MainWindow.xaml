@@ -429,6 +429,10 @@
                         Background="#1E293B" Foreground="#94A3B8" BorderBrush="#334155" BorderThickness="1" FontSize="13" FontWeight="SemiBold" Click="SelectAll_Click">
                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
                 </Button>
+                <Button x:Name="StopAllButton" Content="{DynamicResource Loc_BtnStopAll}" Width="100" Height="45" Margin="0,0,10,0" 
+                        Background="#B91C1C" Foreground="White" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="StopAll_Click">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
+                </Button>
                 <Button x:Name="RemoveAllButton" Content="{DynamicResource Loc_BtnRemoveAll}" Width="100" Height="45" Margin="0,0,10,0" 
                         Background="#1E293B" Foreground="#94A3B8" BorderBrush="#334155" BorderThickness="1" FontSize="13" FontWeight="SemiBold" Click="RemoveAll_Click">
                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>

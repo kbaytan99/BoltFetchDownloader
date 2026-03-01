@@ -368,6 +368,7 @@ namespace BoltFetch.Models
 
                                     currentPos += read;
                                     progress.AddBytes(read);
+                                    Services.Speedometer.AddBytes(read);
 
                                     if (SpeedLimitKB > 0)
                                         await ThrottleInstant(read, SpeedLimitKB, cancellationToken);
@@ -433,6 +434,7 @@ namespace BoltFetch.Models
                 {
                     await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
                 progress.AddBytes(bytesRead);
+                Services.Speedometer.AddBytes(bytesRead);
 
                 if (SpeedLimitKB > 0) 
                 {

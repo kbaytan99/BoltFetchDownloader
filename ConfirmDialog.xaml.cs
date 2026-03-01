@@ -38,5 +38,10 @@ namespace BoltFetch
             dialog.ShowDialog();
             return dialog.Confirmed;
         }
+
+        private void Window_Deactivated(object sender, System.EventArgs e)
+        {
+            try { Close(); } catch { }
+        }
     }
 }

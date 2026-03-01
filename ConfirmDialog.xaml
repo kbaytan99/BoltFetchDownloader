@@ -4,7 +4,7 @@
         Title="Confirm" Height="220" Width="450"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        ResizeMode="NoResize" ShowInTaskbar="False">
+        ResizeMode="NoResize" ShowInTaskbar="False" Deactivated="Window_Deactivated">
     <Border Background="#1E293B" CornerRadius="12" BorderBrush="#334155" BorderThickness="1">
         <Border.Effect>
             <DropShadowEffect BlurRadius="20" ShadowDepth="5" Color="Black" Opacity="0.6"/>

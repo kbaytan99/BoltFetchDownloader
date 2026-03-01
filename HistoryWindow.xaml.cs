@@ -49,6 +49,11 @@ namespace BoltFetch
                 System.Windows.MessageBox.Show("Error loading history: " + ex.Message);
             }
         }
+
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            try { Close(); } catch { }
+        }
     }
 
     public class HistoryDisplayItem

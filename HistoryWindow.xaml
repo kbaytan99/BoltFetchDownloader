@@ -1,8 +1,9 @@
 <Window x:Class="BoltFetch.HistoryWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{DynamicResource Loc_HistoryTitle}" Height="500" Width="800"
-        WindowStartupLocation="CenterOwner" Background="#0F172A">
+        Title="{DynamicResource Loc_HistoryTitle}" Height="600" Width="1000"
+        WindowStartupLocation="CenterOwner" Background="#0F172A"
+        Deactivated="Window_Deactivated">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -13,8 +14,55 @@
         <TextBlock Text="{DynamicResource Loc_HistoryTitle}" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,0,0,20"/>
 
         <DataGrid x:Name="HistoryDataGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True" 
-                  Background="#1E293B" Foreground="White" BorderThickness="0" 
-                  RowBackground="#1E293B" AlternatingRowBackground="#162031">
+                  Background="Transparent" Foreground="White" BorderThickness="0" 
+                  RowBackground="Transparent" AlternatingRowBackground="#162031" HeadersVisibility="Column" SelectionMode="Single">
+            <DataGrid.Resources>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#1E293B"/>
+                    <Setter Property="Foreground" Value="#CBD5E1"/>
+                    <Setter Property="Padding" Value="10,8"/>
+                    <Setter Property="FontSize" Value="13"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,2"/>
+                    <Setter Property="BorderBrush" Value="#3ABEF9"/>
+                </Style>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="BorderBrush" Value="#1E293B"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#1E293B"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#1E3ABEF9"/>
+                            <Setter Property="BorderBrush" Value="#3ABEF9"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Padding" Value="10,0"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridCell">
+                                <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                                    <ContentPresenter VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="{DynamicResource Loc_HistColDate}" Binding="{Binding Timestamp, StringFormat=\{0:dd/MM/yyyy HH:mm\}}" Width="140" FontSize="13"/>
                 <DataGridTextColumn Header="{DynamicResource Loc_HistColName}" Binding="{Binding FileName}" Width="*" FontSize="13"/>

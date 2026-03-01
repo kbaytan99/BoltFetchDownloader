@@ -39,6 +39,7 @@
     <system:String x:Key="Loc_BtnRemoveAll">Remove All</system:String>
     <system:String x:Key="Loc_BtnDeleteAll">Delete All</system:String>
     <system:String x:Key="Loc_BtnStartSelected">START SELECTED</system:String>
+    <system:String x:Key="Loc_BtnStopAll">STOP ALL</system:String>
 
     <!-- Tepsi Menusu / Tray Menu -->
     <system:String x:Key="Loc_TraySettings">Settings</system:String>
