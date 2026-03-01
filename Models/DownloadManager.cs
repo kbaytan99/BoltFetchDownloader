@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace BoltFetch.Models
 {
@@ -106,10 +107,13 @@ namespace BoltFetch.Models
                     if (supportsRange && item.Size > 1024 * 1024 && SegmentsPerFile > 1)
                     {
                         string tempPath = destinationPath + ".downloading";
-                        if (File.Exists(tempPath)) File.Delete(tempPath);
                         await DownloadSegmentedAsync(item, tempPath, progress, cts.Token);
                         if (File.Exists(destinationPath)) File.Delete(destinationPath);
                         File.Move(tempPath, destinationPath);
+
+                        // Clean up state file on success
+                        var statePath = tempPath + ".state";
+                        if (File.Exists(statePath)) File.Delete(statePath);
                     }
                     else
                     {
@@ -247,14 +251,36 @@ namespace BoltFetch.Models
 
         private async Task DownloadSegmentedAsync(GoFileItem item, string destinationPath, DownloadProgress progress, CancellationToken cancellationToken)
         {
-            // --- TURBO BOOSTER: CHUNKED WORK STEALING ---
-            const long CHUNK_SIZE = 4 * 1024 * 1024; // 4MB chunks for high-speed connections
-            var chunks = new ConcurrentQueue<(long start, long end)>();
-            for (long start = 0; start < item.Size; start += CHUNK_SIZE)
+            // --- RESUMPTION LOGIC: LOAD STATE ---
+            var statePath = destinationPath + ".state";
+            var completedChunks = new HashSet<int>();
+            if (File.Exists(statePath))
             {
-                long end = Math.Min(start + CHUNK_SIZE - 1, item.Size - 1);
-                chunks.Enqueue((start, end));
+                try
+                {
+                    var stateJson = File.ReadAllText(statePath);
+                    var state = JsonConvert.DeserializeObject<List<int>>(stateJson);
+                    if (state != null) completedChunks = new HashSet<int>(state);
+                }
+                catch { }
             }
+
+            const long CHUNK_SIZE = 4 * 1024 * 1024; // 4MB chunks
+            var chunks = new ConcurrentQueue<(long start, long end, int index)>();
+            int totalChunks = (int)Math.Ceiling((double)item.Size / CHUNK_SIZE);
+
+            for (int i = 0; i < totalChunks; i++)
+            {
+                if (completedChunks.Contains(i)) continue;
+
+                long start = (long)i * CHUNK_SIZE;
+                long end = Math.Min(start + CHUNK_SIZE - 1, item.Size - 1);
+                chunks.Enqueue((start, end, i));
+            }
+
+            // Update initial progress based on completed chunks
+            progress.BytesDownloaded = (long)completedChunks.Count * CHUNK_SIZE;
+            if (progress.BytesDownloaded > item.Size) progress.BytesDownloaded = item.Size;
 
             // --- TURBO BOOSTER: BUFFERED ASYNC WRITER ---
             var writeChannel = Channel.CreateBounded<FileWriteRequest>(new BoundedChannelOptions(256) 
@@ -264,8 +290,9 @@ namespace BoltFetch.Models
 
             var writerTask = Task.Run(async () => 
             {
-                using var fs = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.Write, BUFFER_SIZE, true);
-                fs.SetLength(item.Size);
+                using var fs = new FileStream(destinationPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite, BUFFER_SIZE, true);
+                if (fs.Length != item.Size) fs.SetLength(item.Size);
+                
                 await foreach (var req in writeChannel.Reader.ReadAllAsync(cancellationToken))
                 {
                     fs.Seek(req.Position, SeekOrigin.Begin);
@@ -274,6 +301,8 @@ namespace BoltFetch.Models
             });
 
             var downloadTasks = new List<Task>();
+            object stateLock = new object();
+
             for (int i = 0; i < SegmentsPerFile; i++)
             {
                 downloadTasks.Add(Task.Run(async () =>
@@ -329,11 +358,23 @@ namespace BoltFetch.Models
                                     if (SpeedLimitKB > 0)
                                         await ThrottleInstant(read, SpeedLimitKB, cancellationToken);
                                 }
+
+                                // Chunk finished, mark as complete
+                                lock(stateLock)
+                                {
+                                    completedChunks.Add(chunk.index);
+                                    // Save state periodically (e.g., every 5 chunks or every few seconds)
+                                    if (completedChunks.Count % 5 == 0)
+                                    {
+                                        var json = JsonConvert.SerializeObject(completedChunks.ToList());
+                                        File.WriteAllText(statePath, json);
+                                    }
+                                }
                             }
                         }
                         catch (Exception)
                         {
-                            throw; // Let Task.WhenAll handle the failure
+                            throw;
                         }
                     }
                 }, cancellationToken));
