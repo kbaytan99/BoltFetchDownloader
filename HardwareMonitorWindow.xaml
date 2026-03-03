@@ -1,7 +1,7 @@
 <Window x:Class="BoltFetch.HardwareMonitorWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Resource Monitor" Height="700" Width="400"
+        Title="{DynamicResource Loc_MonTitle}" Height="700" Width="400"
         Icon="Resources/logo.png"
         Background="#0F172A" Foreground="#E2E8F0" WindowStartupLocation="CenterOwner"
         WindowStyle="None" AllowsTransparency="True" ResizeMode="NoResize"
@@ -17,8 +17,8 @@
             <!-- Header -->
             <Grid Margin="0,0,0,20">
                 <StackPanel HorizontalAlignment="Center">
-                    <TextBlock Text="RESOURCE MONITOR" FontSize="20" FontWeight="Bold" Foreground="#3ABEF9" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Real-time System Metrics" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                    <TextBlock Text="{DynamicResource Loc_MonTitle}" FontSize="20" FontWeight="Bold" Foreground="#3ABEF9" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{DynamicResource Loc_MonSubtitle}" FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,5,0,0"/>
                 </StackPanel>
                 <Button Content="✕" Width="30" Height="30" Click="Close_Click" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" FontSize="16" Cursor="Hand" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-20,-20,0">
                     <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="✕" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#E81123"/><Setter Property="Foreground" Value="White"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
@@ -76,7 +76,7 @@
 
                 <!-- Disk Usage -->
                 <Grid Margin="0,5,0,5">
-                    <TextBlock Text="DISK ACTIVITY" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9"/>
+                    <TextBlock Text="{DynamicResource Loc_MonDisk}" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9"/>
                     <TextBlock x:Name="DiskTimeText" Text="0.0 %" FontSize="12" FontWeight="Bold" Foreground="White" HorizontalAlignment="Right"/>
                 </Grid>
                 <Border Height="50" BorderBrush="#334155" BorderThickness="1" CornerRadius="4" Background="#0F172A" Margin="0,0,0,5">
@@ -89,9 +89,9 @@
                     </Grid>
                 </Border>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10">
-                    <TextBlock Text="Read: " FontSize="11" Foreground="#94A3B8"/>
+                    <TextBlock Text="{DynamicResource Loc_MonRead}" FontSize="11" Foreground="#94A3B8"/>
                     <TextBlock x:Name="DiskReadText" Text="0 KB/s" FontSize="11" Foreground="#F8FAFC" Margin="0,0,15,0" FontWeight="SemiBold"/>
-                    <TextBlock Text="Write: " FontSize="11" Foreground="#94A3B8"/>
+                    <TextBlock Text="{DynamicResource Loc_MonWrite}" FontSize="11" Foreground="#94A3B8"/>
                     <TextBlock x:Name="DiskWriteText" Text="0 KB/s" FontSize="11" Foreground="#F8FAFC" FontWeight="SemiBold"/>
                 </StackPanel>
                 
@@ -108,9 +108,9 @@
                     </Grid>
                 </Border>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,10">
-                    <TextBlock Text="Download: " FontSize="11" Foreground="#94A3B8"/>
+                    <TextBlock Text="{DynamicResource Loc_MonDownload}" FontSize="11" Foreground="#94A3B8"/>
                     <TextBlock x:Name="NetReadText" Text="0 KB/s" FontSize="11" Foreground="#4ADE80" Margin="0,0,15,0" FontWeight="SemiBold"/>
-                    <TextBlock Text="Upload: " FontSize="11" Foreground="#94A3B8"/>
+                    <TextBlock Text="{DynamicResource Loc_MonUpload}" FontSize="11" Foreground="#94A3B8"/>
                     <TextBlock x:Name="NetWriteText" Text="0 KB/s" FontSize="11" Foreground="#F59E0B" FontWeight="SemiBold"/>
                 </StackPanel>
 

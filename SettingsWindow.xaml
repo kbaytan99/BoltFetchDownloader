@@ -28,18 +28,18 @@
             <!-- Form Content -->
             <StackPanel Grid.Row="1">
                 <!-- Download Path -->
-                <TextBlock Text="DOWNLOAD DIRECTORY" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,0,0,8"/>
+                <TextBlock Text="{DynamicResource Loc_SettingsDir}" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,0,0,8"/>
                 <Grid Margin="0,0,0,25">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="PathTextBox" Height="40" VerticalContentAlignment="Center" Background="#1E293B" Foreground="White" BorderBrush="#334155" BorderThickness="1" Padding="10,0" FontSize="13"/>
-                    <Button Content="BROWSE" Grid.Column="1" Width="100" Margin="10,0,0,0" Click="Browse_Click" Background="#2D3748" Foreground="White" BorderThickness="0" FontWeight="SemiBold" FontSize="11"/>
+                    <Button Content="{DynamicResource Loc_BtnBrowse}" Grid.Column="1" Width="100" Margin="10,0,0,0" Click="Browse_Click" Background="#2D3748" Foreground="White" BorderThickness="0" FontWeight="SemiBold" FontSize="11"/>
                 </Grid>
 
                 <!-- Language Selection -->
-                <TextBlock Text="LANGUAGE / DİL" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,0,0,8"/>
+                <TextBlock Text="{DynamicResource Loc_SettingsLang}" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,0,0,8"/>
                 <ComboBox x:Name="LanguageComboBox" Height="40" VerticalContentAlignment="Center" Padding="10,0" Margin="0,0,0,25" FontSize="13"
                           Background="#1E293B" Foreground="White" BorderBrush="#334155">
                     <ComboBoxItem Tag="en" IsSelected="True" Foreground="White" Background="#1E293B">
@@ -57,19 +57,19 @@
                 </ComboBox>
 
                 <!-- Max Parallel -->
-                <TextBlock Text="MAX PARALLEL DOWNLOADS" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,0,0,8"/>
+                <TextBlock Text="{DynamicResource Loc_SettingsParallel}" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,0,0,8"/>
                 <TextBox x:Name="ParallelTextBox" Height="40" VerticalContentAlignment="Center" Background="#1E293B" Foreground="White" BorderBrush="#334155" Padding="10,0" Margin="0,0,0,25" FontSize="14"/>
 
                 <!-- Speed Limit -->
-                <TextBlock Text="SPEED LIMIT (KB/s) - 0 for unlimited" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,0,0,8"/>
+                <TextBlock Text="{DynamicResource Loc_SettingsSpeed}" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,0,0,8"/>
                 <TextBox x:Name="SpeedLimitTextBox" Height="40" VerticalContentAlignment="Center" Background="#1E293B" Foreground="White" BorderBrush="#334155" Padding="10,0" Margin="0,0,0,25" FontSize="14"/>
 
                 <!-- Segments -->
-                <TextBlock Text="SEGMENTS PER FILE (Multi-Thread Chunks)" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,0,0,8"/>
+                <TextBlock Text="{DynamicResource Loc_SettingsSegments}" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,0,0,8"/>
                 <TextBox x:Name="SegmentsTextBox" Height="40" VerticalContentAlignment="Center" Background="#1E293B" Foreground="White" BorderBrush="#334155" Padding="10,0" FontSize="14"/>
 
                 <!-- Active Providers Overview -->
-                <TextBlock Text="ACTIVE PROVIDERS" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,20,0,8"/>
+                <TextBlock Text="{DynamicResource Loc_SettingsProviders}" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,20,0,8"/>
                 <Border Background="#0C1322" BorderBrush="#334155" BorderThickness="1" Padding="12" CornerRadius="6">
                     <StackPanel>
                         <TextBlock Text="✓ GoFile.io (Smart Token API)" Foreground="#16A34A" FontSize="12" FontWeight="SemiBold"/>
@@ -81,11 +81,10 @@
             <StackPanel Grid.Row="2" Orientation="Vertical" Margin="0,20,0,0">
                 <TextBlock Text="{DynamicResource Loc_AppVersion}" Foreground="#64748B" FontSize="10" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="🐛 Report Bug" Width="130" Height="45" Margin="0,0,15,0" Click="ReportBug_Click" Background="Transparent" Foreground="#F59E0B" BorderThickness="1" BorderBrush="#F59E0B" FontSize="12" FontWeight="Bold" Cursor="Hand">
+                    <Button Content="{DynamicResource Loc_BtnReportBug}" Width="130" Height="45" Margin="0,0,15,0" Click="ReportBug_Click" Background="Transparent" Foreground="#F59E0B" BorderThickness="1" BorderBrush="#F59E0B" FontSize="12" FontWeight="Bold" Cursor="Hand">
                         <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
                     </Button>
-
-                    <Button Content="SAVE CHANGES" Width="160" Height="45" Click="Save_Click" Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontWeight="Bold" FontSize="12">
+                    <Button Content="{DynamicResource Loc_BtnSave}" Width="160" Height="45" Click="Save_Click" Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontWeight="Bold" FontSize="12">
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="6"/>

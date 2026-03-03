@@ -61,5 +61,33 @@
     <system:String x:Key="Loc_HistColSize">Size</system:String>
     <system:String x:Key="Loc_HistColCat">Category</system:String>
     <system:String x:Key="Loc_BtnHistory">History</system:String>
-    <system:String x:Key="Loc_HistTotalDisp">Total Downloaded:</system:String>
+    <!-- Settings Window -->
+    <system:String x:Key="Loc_BtnSettings">Settings</system:String>
+    <system:String x:Key="Loc_BtnMonitor">Monitor</system:String>
+    <system:String x:Key="Loc_SmartEngine">Smart Engine</system:String>
+    <system:String x:Key="Loc_SettingsDir">DOWNLOAD DIRECTORY</system:String>
+    <system:String x:Key="Loc_SettingsLang">LANGUAGE / DİL</system:String>
+    <system:String x:Key="Loc_SettingsParallel">MAX PARALLEL DOWNLOADS</system:String>
+    <system:String x:Key="Loc_SettingsSpeed">SPEED LIMIT (KB/s) — 0 for unlimited</system:String>
+    <system:String x:Key="Loc_SettingsSegments">SEGMENTS PER FILE</system:String>
+    <system:String x:Key="Loc_SettingsProviders">ACTIVE PROVIDERS</system:String>
+    <system:String x:Key="Loc_BtnSave">SAVE</system:String>
+    <system:String x:Key="Loc_BtnCancel">CANCEL</system:String>
+    <system:String x:Key="Loc_BtnBrowse">BROWSE</system:String>
+    <system:String x:Key="Loc_BtnReportBug">Report a Bug</system:String>
+    
+    <!-- Resource Monitor -->
+    <system:String x:Key="Loc_MonTitle">RESOURCE MONITOR</system:String>
+    <system:String x:Key="Loc_MonSubtitle">Real-time System Metrics</system:String>
+    <system:String x:Key="Loc_MonDisk">DISK ACTIVITY</system:String>
+    <system:String x:Key="Loc_MonRead">Read:</system:String>
+    <system:String x:Key="Loc_MonWrite">Write:</system:String>
+    <system:String x:Key="Loc_MonDownload">Download:</system:String>
+    <system:String x:Key="Loc_MonUpload">Upload:</system:String>
+    
+    <!-- Add Link Window -->
+    <system:String x:Key="Loc_AddHeader">Add Download Links</system:String>
+    <system:String x:Key="Loc_AddOnePerLine">One URL per line</system:String>
+    <system:String x:Key="Loc_BtnConfirm">Confirm</system:String>
+    <system:String x:Key="Loc_ConfirmTitle">Confirm</system:String>
 </ResourceDictionary>

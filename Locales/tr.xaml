@@ -61,5 +61,33 @@
     <system:String x:Key="Loc_HistColSize">Boyut</system:String>
     <system:String x:Key="Loc_HistColCat">Kategori</system:String>
     <system:String x:Key="Loc_BtnHistory">Geçmiş</system:String>
-    <system:String x:Key="Loc_HistTotalDisp">Toplam İndirilen:</system:String>
+    <!-- Ayarlar Penceresi -->
+    <system:String x:Key="Loc_BtnSettings">Ayarlar</system:String>
+    <system:String x:Key="Loc_BtnMonitor">İzleyici</system:String>
+    <system:String x:Key="Loc_SmartEngine">Akıllı Motor</system:String>
+    <system:String x:Key="Loc_SettingsDir">İNDİRME DİZİNİ</system:String>
+    <system:String x:Key="Loc_SettingsLang">DİL</system:String>
+    <system:String x:Key="Loc_SettingsParallel">EŞ ZAMANLI İNDİRME LİMİTİ</system:String>
+    <system:String x:Key="Loc_SettingsSpeed">HIZ LİMİTİ (KB/s) — 0 = sınırsız</system:String>
+    <system:String x:Key="Loc_SettingsSegments">DOSYA BAŞINA PARÇA SAYISI</system:String>
+    <system:String x:Key="Loc_SettingsProviders">AKTİF SAĞLAYICILAR</system:String>
+    <system:String x:Key="Loc_BtnSave">KAYDET</system:String>
+    <system:String x:Key="Loc_BtnCancel">İPTAL</system:String>
+    <system:String x:Key="Loc_BtnBrowse">GÖZAT</system:String>
+    <system:String x:Key="Loc_BtnReportBug">Hata Bildir</system:String>
+
+    <!-- Kaynak İzleyici -->
+    <system:String x:Key="Loc_MonTitle">KAYNAK İZLEYİCİ</system:String>
+    <system:String x:Key="Loc_MonSubtitle">Gerçek Zamanlı Sistem Verileri</system:String>
+    <system:String x:Key="Loc_MonDisk">DİSK AKTİVİTESİ</system:String>
+    <system:String x:Key="Loc_MonRead">Okuma:</system:String>
+    <system:String x:Key="Loc_MonWrite">Yazma:</system:String>
+    <system:String x:Key="Loc_MonDownload">İndirme:</system:String>
+    <system:String x:Key="Loc_MonUpload">Yükleme:</system:String>
+
+    <!-- Link Ekleme Penceresi -->
+    <system:String x:Key="Loc_AddHeader">İndirme Linklerini Ekle</system:String>
+    <system:String x:Key="Loc_AddOnePerLine">Her satıra bir link</system:String>
+    <system:String x:Key="Loc_BtnConfirm">Onayla</system:String>
+    <system:String x:Key="Loc_ConfirmTitle">Onay</system:String>
 </ResourceDictionary>

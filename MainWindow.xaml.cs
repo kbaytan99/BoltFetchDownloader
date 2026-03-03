@@ -15,6 +15,7 @@ using BoltFetch.Models;
 using BoltFetch.Services;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
+using System.Reflection;
 using Forms = System.Windows.Forms;
 
 namespace BoltFetch
@@ -232,11 +233,11 @@ namespace BoltFetch
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
+            var oldLang = _settings.Language;
             var settingsWindow = new SettingsWindow(_settings);
             settingsWindow.Owner = this;
             if (settingsWindow.ShowDialog() == true)
             {
-                var oldLang = _settings.Language;
                 _settings = settingsWindow.Settings;
                 SettingsService.Save(_settings);
                 PathLabel.Text = _settings.DownloadPath;
@@ -258,17 +259,50 @@ namespace BoltFetch
             var dict = new ResourceDictionary();
             dict.Source = new Uri($"Locales/{langCode}.xaml", UriKind.Relative);
 
-            // Remove old locale dictionaries and add the new one
+            // Remove old locale dictionaries and add the new one to Application resources
             var toRemove = System.Windows.Application.Current.Resources.MergedDictionaries
                 .Where(d => d.Source != null && d.Source.OriginalString.StartsWith("Locales/")).ToList();
             foreach (var d in toRemove) System.Windows.Application.Current.Resources.MergedDictionaries.Remove(d);
             System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
 
-            // Force DataGrid column headers to refresh (they don't auto-update DynamicResource)
-            string[] headerKeys = { "Loc_ColName", "Loc_ColSize", "Loc_ColProgress", "Loc_ColSpeed", "Loc_ColETA", "Loc_ColStatus", "Loc_ColControls" };
-            for (int i = 0; i < FilesDataGrid.Columns.Count && i < headerKeys.Length; i++)
+            // Re-apply the dynamic version string
+            var version = Assembly.GetExecutingAssembly()
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "1.0.0";
+            if (version.Contains('+')) version = version[..version.IndexOf('+')];
+            var versionPrefix = langCode == "tr" ? "Sürüm" : "Version";
+            System.Windows.Application.Current.Resources["Loc_AppVersion"] = $"{versionPrefix} {version}";
+
+            // Refresh UI elements that don't auto-update (like DataGrid Headers)
+            RefreshWindowHeaders(this);
+            
+            foreach (Window win in System.Windows.Application.Current.Windows)
             {
-                FilesDataGrid.Columns[i].Header = FindResource(headerKeys[i]);
+                if (win != this) RefreshWindowHeaders(win);
+            }
+        }
+
+        private void RefreshWindowHeaders(Window win)
+        {
+            if (win == null) return;
+
+            // Find DataGrids in the window and refresh their headers
+            if (win is MainWindow mainWin && mainWin.FilesDataGrid != null)
+            {
+                string[] headerKeys = { "Loc_ColName", "Loc_ColSize", "Loc_ColProgress", "Loc_ColSpeed", "Loc_ColETA", "Loc_ColStatus", "Loc_ColControls" };
+                for (int i = 0; i < mainWin.FilesDataGrid.Columns.Count && i < headerKeys.Length; i++)
+                {
+                    var header = win.TryFindResource(headerKeys[i]);
+                    if (header != null) mainWin.FilesDataGrid.Columns[i].Header = header;
+                }
+            }
+            else if (win is HistoryWindow histWin && histWin.HistoryDataGrid != null)
+            {
+                string[] histKeys = { "Loc_HistColDate", "Loc_HistColName", "Loc_HistColSize", "Loc_HistColCat" };
+                for (int i = 0; i < histWin.HistoryDataGrid.Columns.Count && i < histKeys.Length; i++)
+                {
+                    var header = win.TryFindResource(histKeys[i]);
+                    if (header != null) histWin.HistoryDataGrid.Columns[i].Header = header;
+                }
             }
         }
 

@@ -60,8 +60,8 @@
                         <TextBlock Text="🔗" FontSize="18" FontFamily="Segoe UI Emoji" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Add Download Links" FontSize="16" FontWeight="Bold" Foreground="#F8FAFC"/>
-                        <TextBlock Text="One URL per line" FontSize="11" Foreground="#64748B"/>
+                        <TextBlock Text="{DynamicResource Loc_AddHeader}" FontSize="16" FontWeight="Bold" Foreground="#F8FAFC"/>
+                        <TextBlock Text="{DynamicResource Loc_AddOnePerLine}" FontSize="11" Foreground="#64748B"/>
                     </StackPanel>
                 </StackPanel>
                 <Button Content="✕" Width="30" Height="30" Click="CancelButton_Click" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" FontSize="16" Cursor="Hand" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-12,-12,0">
