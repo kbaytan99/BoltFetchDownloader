@@ -6,7 +6,7 @@
         ResizeMode="NoResize"
         Icon="Resources/logo.png"
         Background="#0F172A" Foreground="#E2E8F0"
-        WindowStyle="SingleBorderWindow" Deactivated="Window_Deactivated">
+        WindowStyle="SingleBorderWindow" Deactivated="Window_Deactivated" MouseDown="Window_MouseDown">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="35" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
@@ -71,11 +71,6 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
                         </TextBlock>
                     </ScrollViewer>
                 </Border>
-                
-                <Button Grid.Row="3" Content="{DynamicResource Loc_AboutBtnOK}" Width="100" Height="35" Margin="0,15,0,0" HorizontalAlignment="Center"
-                        Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="CloseBtn_Click">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="17"/></Style></Button.Resources>
-                </Button>
             </Grid>
         </Border>
     </Grid>

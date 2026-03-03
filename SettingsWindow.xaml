@@ -5,7 +5,7 @@
         Icon="Resources/logo.png"
         Background="#0F172A" Foreground="#E2E8F0" WindowStartupLocation="CenterOwner"
         WindowStyle="None" AllowsTransparency="True" ResizeMode="NoResize"
-        Deactivated="Window_Deactivated">
+        Deactivated="Window_Deactivated" MouseDown="Window_MouseDown">
     <Border BorderBrush="#334155" BorderThickness="1" Background="#0F172A" CornerRadius="12">
         <Grid Margin="30">
             <Grid.RowDefinitions>
@@ -15,10 +15,15 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <StackPanel Margin="0,0,0,30" HorizontalAlignment="Center">
-                <Image Source="Resources/logo.png" Height="80" Margin="0,0,0,10" RenderOptions.BitmapScalingMode="HighQuality"/>
-                <TextBlock Text="SETTINGS" FontSize="24" FontWeight="Bold" Foreground="#3ABEF9" HorizontalAlignment="Center"/>
-            </StackPanel>
+            <Grid Margin="0,0,0,30">
+                <StackPanel HorizontalAlignment="Center">
+                    <Image Source="Resources/logo.png" Height="80" Margin="0,0,0,10" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <TextBlock Text="SETTINGS" FontSize="24" FontWeight="Bold" Foreground="#3ABEF9" HorizontalAlignment="Center"/>
+                </StackPanel>
+                <Button Content="✕" Width="30" Height="30" Click="Cancel_Click" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" FontSize="16" Cursor="Hand" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-20,-20,0">
+                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="✕" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#E81123"/><Setter Property="Foreground" Value="White"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
+                </Button>
+            </Grid>
 
             <!-- Form Content -->
             <StackPanel Grid.Row="1">
@@ -79,7 +84,7 @@
                     <Button Content="🐛 Report Bug" Width="130" Height="45" Margin="0,0,15,0" Click="ReportBug_Click" Background="Transparent" Foreground="#F59E0B" BorderThickness="1" BorderBrush="#F59E0B" FontSize="12" FontWeight="Bold" Cursor="Hand">
                         <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
                     </Button>
-                    <Button Content="CANCEL" Width="120" Height="45" Margin="0,0,15,0" Click="Cancel_Click" Background="Transparent" Foreground="#94A3B8" BorderThickness="1" BorderBrush="#334155" FontSize="12" FontWeight="Bold"/>
+
                     <Button Content="SAVE CHANGES" Width="160" Height="45" Click="Save_Click" Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontWeight="Bold" FontSize="12">
                         <Button.Resources>
                             <Style TargetType="Border">

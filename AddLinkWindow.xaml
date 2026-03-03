@@ -5,7 +5,7 @@
         WindowStartupLocation="CenterOwner"
         Background="#0F172A" Foreground="#E2E8F0"
         WindowStyle="None" AllowsTransparency="True"
-        ResizeMode="NoResize" Deactivated="Window_Deactivated">
+        ResizeMode="NoResize" Deactivated="Window_Deactivated" MouseDown="Window_MouseDown">
     
     <Window.Resources>
         <!-- Modern Button Style -->
@@ -53,10 +53,15 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-                <TextBlock Text="🔗" FontSize="20" Foreground="#3ABEF9" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBlock Text="Add Download Links" FontSize="18" FontWeight="Bold" Foreground="#F8FAFC" VerticalAlignment="Center"/>
-            </StackPanel>
+            <Grid Grid.Row="0" Margin="0,0,0,15">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="🔗" FontSize="20" Foreground="#3ABEF9" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="Add Download Links" FontSize="18" FontWeight="Bold" Foreground="#F8FAFC" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button Content="✕" Width="30" Height="30" Click="CancelButton_Click" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" FontSize="16" Cursor="Hand" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-12,-12,0">
+                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="✕" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#E81123"/><Setter Property="Foreground" Value="White"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
+                </Button>
+            </Grid>
 
             <!-- Input Box -->
             <TextBox x:Name="LinksTextBox" Grid.Row="1" Background="#1E293B" Foreground="White" 
@@ -90,7 +95,6 @@
                     <Button Content="Paste from Clipboard" Style="{StaticResource DialogButton}" Background="#1E293B" Click="PasteButton_Click"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="Cancel" Style="{StaticResource DialogButton}" Margin="0,0,10,0" Click="CancelButton_Click"/>
                     <Button Content="Add Links" Style="{StaticResource DialogButton}" Background="#3ABEF9" Foreground="#0F172A" Click="AddButton_Click"/>
                 </StackPanel>
             </Grid>

@@ -154,6 +154,20 @@
                     </Button.Resources>
                 </Button>
                 
+                <Button x:Name="MonitorButton" Style="{StaticResource ModernButton}" 
+                        Width="110" Height="38" Click="MonitorButton_Click" Margin="0,0,10,0"
+                        Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Monitor" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#CBD5E1"/>
+                        <TextBlock Text="📈" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9" FontFamily="Segoe UI Emoji"/>
+                    </StackPanel>
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="19"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                
                 <Button x:Name="SettingsButton" Style="{StaticResource ModernButton}" 
                         Width="110" Height="38" Click="SettingsButton_Click"
                         Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
@@ -412,12 +426,8 @@
                     <TextBlock x:Name="ParallelLimitText" Text="3" Foreground="#3ABEF9" FontSize="13" FontWeight="Bold"/>
                     <TextBlock Text="{DynamicResource Loc_FooterVersion}" Foreground="#64748B" FontSize="13" Margin="10,0,5,0"/>
                     <TextBlock Text="{DynamicResource Loc_AppVersion}" Foreground="#FFD700" FontSize="13" FontWeight="Bold"/>
-                    <TextBlock Text="  ⚡" Foreground="#64748B" FontSize="13" Margin="10,0,3,0"/>
-                    <TextBlock x:Name="InternetSpeedText" Text="-" Foreground="#4ADE80" FontSize="13" FontWeight="Bold"/>
                     <TextBlock Text="  🧠" FontFamily="Segoe UI Emoji" Foreground="#64748B" FontSize="13" Margin="10,0,3,0"/>
                     <TextBlock Text="Smart Engine" Foreground="#A78BFA" FontSize="13" FontWeight="SemiBold"/>
-                    <TextBlock Text="  |  " Foreground="#64748B" FontSize="13" Margin="10,0,0,0"/>
-                    <TextBlock x:Name="MemoryUsageText" Text="RAM: ~ MB" Foreground="#94A3B8" FontSize="13" FontWeight="SemiBold" ToolTip="Uygulama Bellek Tüketimi"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                     <TextBlock Text="{DynamicResource Loc_FooterFolder}" Foreground="#64748B" FontSize="12" Margin="0,0,5,0"/>

@@ -16,9 +16,15 @@ namespace BoltFetch
             this.Close();
         }
 
+        private void Window_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+                this.DragMove();
+        }
+
         private void Window_Deactivated(object sender, System.EventArgs e)
         {
-            try { Close(); } catch { }
+            // Prevent accidental closures during drag operation
         }
     }
 }

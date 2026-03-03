@@ -33,8 +33,8 @@ namespace BoltFetch
         private Forms.NotifyIcon? _notifyIcon;
         
         // Speed Graph fields
+        // Speed Graph fields
         private readonly List<double> _speedHistory = new List<double>();
-        private DispatcherTimer _memoryTimer;
         private int _lastActiveCount = 0;
         private const int MaxHistoryPoints = 60;
         private DateTime _lastGraphUpdate = DateTime.MinValue;
@@ -47,10 +47,7 @@ namespace BoltFetch
             _settings = SettingsService.Load();
             _downloadManager = new DownloadManager(_settings.MaxParallelDownloads);
             _orchestrator = new DownloadOrchestrator(_downloadManager, _settings);
-            
-            _memoryTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _memoryTimer.Tick += (s, e) => UpdateMemoryUsage();
-            _memoryTimer.Start();
+            _orchestrator = new DownloadOrchestrator(_downloadManager, _settings);
             
             // Handle graph redraw on resize
             SpeedGraphCanvas.SizeChanged += (s, e) => DrawSpeedGraph();
@@ -80,25 +77,8 @@ namespace BoltFetch
 
             // Restore column widths and saved download queue
             RestoreColumnWidths();
+            RestoreColumnWidths();
             RestoreQueue();
-
-            // Detect internet link speed
-            try
-            {
-                var nic = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
-                    .Where(n => n.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up
-                        && n.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
-                    .OrderByDescending(n => n.Speed)
-                    .FirstOrDefault();
-                if (nic != null)
-                {
-                    double speedMbps = nic.Speed / 1_000_000.0;
-                    InternetSpeedText.Text = speedMbps >= 1000
-                        ? $"↓ {speedMbps / 1000:F1} Gbps"
-                        : $"↓ {speedMbps:F0} Mbps";
-                }
-            }
-            catch { InternetSpeedText.Text = "-"; }
         }
 
         #region Title Bar Controls
@@ -239,6 +219,13 @@ namespace BoltFetch
         private void HistoryButton_Click(object sender, RoutedEventArgs e)
         {
             var win = new HistoryWindow();
+            win.Owner = this;
+            win.ShowDialog();
+        }
+
+        private void MonitorButton_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new HardwareMonitorWindow();
             win.Owner = this;
             win.ShowDialog();
         }
@@ -673,17 +660,6 @@ namespace BoltFetch
         #endregion
 
         #region UI Update & Visualization
-        private void UpdateMemoryUsage()
-        {
-            try
-            {
-                using var process = System.Diagnostics.Process.GetCurrentProcess();
-                long memoryBytes = process.PrivateMemorySize64;
-                MemoryUsageText.Text = $"RAM: {memoryBytes / (1024 * 1024)} MB";
-            }
-            catch { }
-        }
-
         private void UpdateSummary()
         {
             long totalBytes = FileItems.Sum(i => i.Source.Size);
@@ -714,7 +690,6 @@ namespace BoltFetch
             // Calculate Total Speed using real-time isolated Speedometer
             long totalSpeedBytes = BoltFetch.Services.Speedometer.GetCurrentSpeed();
             TotalSpeedText.Text = FormatSpeed(totalSpeedBytes) + "/s";
-            InternetSpeedText.Text = FormatSpeed(totalSpeedBytes) + "/s"; // Set the footer speed as requested
 
             // Update Graph up to twice per second
             if ((DateTime.Now - _lastGraphUpdate).TotalSeconds >= 0.5)
