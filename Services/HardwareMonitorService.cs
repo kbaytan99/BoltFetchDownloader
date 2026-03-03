@@ -36,7 +36,6 @@ namespace BoltFetch.Services
         private PerformanceCounter _diskWriteCounter;
         private PerformanceCounter _diskTimeCounter;
         
-        private PerformanceCounter? _gpuCategory; // Not needed if we cache counters
         private List<PerformanceCounter>? _gpuCounters;
         private DateTime _lastGpuCounterUpdate = DateTime.MinValue;
         private ulong _totalPhysicalMemory = 0;

@@ -35,7 +35,7 @@ namespace BoltFetch
             Timer_Tick(null, null);
         }
 
-        private async void Timer_Tick(object sender, EventArgs e)
+        private async void Timer_Tick(object? sender, EventArgs? e)
         {
             if (_isUpdating) return;
             _isUpdating = true;

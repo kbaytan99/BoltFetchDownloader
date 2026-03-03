@@ -11,7 +11,7 @@ namespace BoltFetch
         private string _fullError;
         private string _contextInfo = string.Empty;
 
-        public GlobalErrorWindow(string errorMessage, string context = null)
+        public GlobalErrorWindow(string errorMessage, string? context = null)
         {
             InitializeComponent();
             _fullError = errorMessage;
