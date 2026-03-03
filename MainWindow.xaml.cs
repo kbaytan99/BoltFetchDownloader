@@ -357,13 +357,26 @@ namespace BoltFetch
                     if (string.IsNullOrEmpty(folderCode)) continue;
 
                     var items = await _goFileService.GetFolderContents(folderCode);
-                    Dispatcher.Invoke(() => {
+                    
+                    // Build a HashSet for O(1) duplicate checking safely from the UI thread
+                    HashSet<string> existingIds = new HashSet<string>();
+                    Dispatcher.Invoke(() => 
+                    {
+                        foreach (var itm in FileItems) existingIds.Add(itm.Source.Id);
+                    });
+
+                    // Do the heavy lifting (Disk I/O, object creation) on a background thread
+                    var newDisplayItems = await Task.Run(() => 
+                    {
+                        var processedList = new List<FileDisplayItem>();
                         foreach (var goItem in items)
                         {
-                            if (FileItems.Any(i => i.Source.Id == goItem.Id)) continue; // Avoid duplicates
+                            if (existingIds.Contains(goItem.Id)) continue; // O(1) deduplication
 
                             var displayItem = new FileDisplayItem(goItem);
                             var tempProgress = new DownloadProgress { FileName = goItem.Name, TotalBytes = goItem.Size };
+                            
+                            // Disk I/O performed here on background thread
                             _downloadManager.UpdateProgressFromExistingParts(goItem, _settings.DownloadPath, tempProgress);
                             
                             displayItem.ProgressValue = tempProgress.ProgressPercentage;
@@ -379,9 +392,18 @@ namespace BoltFetch
                                 displayItem.Status = "Stopped";
                             }
 
+                            processedList.Add(displayItem);
+                        }
+                        return processedList;
+                    });
+
+                    // Add processed items back to the UI collection
+                    Dispatcher.Invoke(() => {
+                        foreach (var displayItem in newDisplayItems)
+                        {
                             FileItems.Add(displayItem);
                             totalAdded++;
-                            totalSize += goItem.Size;
+                            totalSize += displayItem.Source.Size;
                         }
                     });
                 }
