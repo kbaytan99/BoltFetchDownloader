@@ -30,7 +30,7 @@
                 
                 <!-- CPU -->
                 <Grid Margin="0,5,0,5">
-                    <TextBlock Text="CPU USAGE" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9"/>
+                    <TextBlock x:Name="CpuLabel" Text="CPU" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9"/>
                     <TextBlock x:Name="CpuText" Text="0.0 %" FontSize="12" FontWeight="Bold" Foreground="White" HorizontalAlignment="Right"/>
                 </Grid>
                 <Border Height="50" BorderBrush="#334155" BorderThickness="1" CornerRadius="4" Background="#0F172A" Margin="0,0,0,10">
@@ -45,7 +45,7 @@
 
                 <!-- RAM -->
                 <Grid Margin="0,5,0,5">
-                    <TextBlock Text="RAM USAGE" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9"/>
+                    <TextBlock x:Name="RamLabel" Text="RAM" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9"/>
                     <TextBlock x:Name="RamPercentText" Text="0.0 %" FontSize="12" FontWeight="Bold" Foreground="White" HorizontalAlignment="Right"/>
                 </Grid>
                 <Border Height="50" BorderBrush="#334155" BorderThickness="1" CornerRadius="4" Background="#0F172A" Margin="0,0,0,2">
@@ -61,7 +61,7 @@
 
                 <!-- GPU -->
                 <Grid Margin="0,5,0,5">
-                    <TextBlock Text="GPU USAGE (3D)" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9"/>
+                    <TextBlock x:Name="GpuLabel" Text="GPU (3D)" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9"/>
                     <TextBlock x:Name="GpuText" Text="0.0 %" FontSize="12" FontWeight="Bold" Foreground="White" HorizontalAlignment="Right"/>
                 </Grid>
                 <Border Height="50" BorderBrush="#334155" BorderThickness="1" CornerRadius="4" Background="#0F172A" Margin="0,0,0,10">
@@ -96,7 +96,7 @@
                 </StackPanel>
                 
                 <!-- Network Usage -->
-                <TextBlock Text="NETWORK ACTIVITY" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,5,0,5"/>
+                <TextBlock x:Name="NetLabel" Text="NETWORK" FontSize="11" FontWeight="Bold" Foreground="#3ABEF9" Margin="0,5,0,5"/>
                 <Border Height="50" BorderBrush="#334155" BorderThickness="1" CornerRadius="4" Background="#0F172A" Margin="0,0,0,5">
                     <Grid>
                         <!-- Grid lines -->

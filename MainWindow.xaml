@@ -418,51 +418,128 @@
             </Grid>
         </Border>
 
-        <!-- Main Actions -->
-        <Grid Grid.Row="4" Margin="0,20,0,0">
-            <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{DynamicResource Loc_FooterParallel}" Foreground="#64748B" FontSize="13" Margin="0,0,5,0"/>
-                    <TextBlock x:Name="ParallelLimitText" Text="3" Foreground="#3ABEF9" FontSize="13" FontWeight="Bold"/>
-                    <TextBlock Text="{DynamicResource Loc_FooterVersion}" Foreground="#64748B" FontSize="13" Margin="10,0,5,0"/>
-                    <TextBlock Text="{DynamicResource Loc_AppVersion}" Foreground="#FFD700" FontSize="13" FontWeight="Bold"/>
-                    <TextBlock Text="  🧠" FontFamily="Segoe UI Emoji" Foreground="#64748B" FontSize="13" Margin="10,0,3,0"/>
-                    <TextBlock Text="Smart Engine" Foreground="#A78BFA" FontSize="13" FontWeight="SemiBold"/>
+        <!-- Bottom Bar -->
+        <Border Grid.Row="4" Margin="0,12,0,0" Background="#111827" CornerRadius="14" BorderBrush="#1E293B" BorderThickness="1">
+            <Grid Margin="16,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Info Row -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
+                    <TextBlock Text="{DynamicResource Loc_FooterParallel}" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
+                    <TextBlock x:Name="ParallelLimitText" Text="3" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" Margin="0,0,16,0"/>
+                    <TextBlock Text="{DynamicResource Loc_FooterVersion}" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
+                    <TextBlock Text="{DynamicResource Loc_AppVersion}" Foreground="#FFD700" FontSize="12" FontWeight="Bold" Margin="0,0,16,0"/>
+                    <TextBlock Text="🧠" FontFamily="Segoe UI Emoji" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
+                    <TextBlock Text="Smart Engine" Foreground="#A78BFA" FontSize="12" FontWeight="SemiBold" Margin="0,0,16,0"/>
+                    <TextBlock Text="{DynamicResource Loc_FooterFolder}" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
+                    <TextBlock x:Name="PathLabel" Text="..." Foreground="#64748B" FontSize="12" FontWeight="SemiBold"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                    <TextBlock Text="{DynamicResource Loc_FooterFolder}" Foreground="#64748B" FontSize="12" Margin="0,0,5,0"/>
-                    <TextBlock x:Name="PathLabel" Text="..." Foreground="#94A3B8" FontSize="12" FontWeight="SemiBold"/>
-                </StackPanel>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button x:Name="SelectAllButton" Content="{DynamicResource Loc_BtnSelectAll}" Width="100" Height="45" Margin="0,0,10,0" 
-                        Background="#1E293B" Foreground="#94A3B8" BorderBrush="#334155" BorderThickness="1" FontSize="13" FontWeight="SemiBold" Click="SelectAll_Click">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
-                </Button>
-                <Button x:Name="StopAllButton" Content="{DynamicResource Loc_BtnStopAll}" Width="100" Height="45" Margin="0,0,10,0" 
-                        Background="#B91C1C" Foreground="White" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="StopAll_Click">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
-                </Button>
-                <Button x:Name="RemoveAllButton" Content="{DynamicResource Loc_BtnRemoveAll}" Width="100" Height="45" Margin="0,0,10,0" 
-                        Background="#1E293B" Foreground="#94A3B8" BorderBrush="#334155" BorderThickness="1" FontSize="13" FontWeight="SemiBold" Click="RemoveAll_Click">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
-                </Button>
-                <Button x:Name="DeleteAllButton" Content="{DynamicResource Loc_BtnDeleteAll}" Width="100" Height="45" Margin="0,0,15,0" 
-                        Background="#7F1D1D" Foreground="#FECACA" BorderThickness="0" FontSize="13" FontWeight="Bold" Click="DeleteAll_Click">
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
-                </Button>
-                <Button x:Name="DownloadButton" Content="{DynamicResource Loc_BtnStartSelected}" Width="170" Height="45" 
-                        Foreground="White" BorderThickness="0" FontSize="14" FontWeight="Bold" Click="DownloadButton_Click">
-                    <Button.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#0284C7" Offset="0"/>
-                            <GradientStop Color="#0EA5E9" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Button.Background>
-                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="22"/></Style></Button.Resources>
-                </Button>
-            </StackPanel>
-        </Grid>
+
+                <!-- Action Toolbar Row -->
+                <Grid Grid.Row="1">
+                    <!-- Left: Secondary Actions -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="SelectAllButton" Width="44" Height="44" Margin="0,0,6,0"
+                                Background="#1E293B" BorderBrush="#334155" BorderThickness="1" Cursor="Hand"
+                                Click="SelectAll_Click" ToolTip="{DynamicResource Loc_BtnSelectAll}">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="10"/></Style></Button.Resources>
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#2D3E52"/></Trigger>
+                                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="bg" Property="Background" Value="#0F172A"/></Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <TextBlock Text="☑" FontFamily="Segoe UI Emoji" FontSize="19" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#94A3B8"/>
+                        </Button>
+                        <Button x:Name="StopAllButton" Width="44" Height="44" Margin="0,0,6,0"
+                                Background="#3B1212" BorderBrush="#7F1D1D" BorderThickness="1" Cursor="Hand"
+                                Click="StopAll_Click" ToolTip="{DynamicResource Loc_BtnStopAll}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#7F1D1D"/></Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <TextBlock Text="⏹" FontFamily="Segoe UI Emoji" FontSize="19" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#F87171"/>
+                        </Button>
+                        <Button x:Name="RemoveAllButton" Width="44" Height="44" Margin="0,0,6,0"
+                                Background="#1E293B" BorderBrush="#334155" BorderThickness="1" Cursor="Hand"
+                                Click="RemoveAll_Click" ToolTip="{DynamicResource Loc_BtnRemoveAll}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#2D3E52"/></Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <TextBlock Text="✖" FontFamily="Segoe UI Emoji" FontSize="17" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#94A3B8"/>
+                        </Button>
+                        <Button x:Name="DeleteAllButton" Width="44" Height="44"
+                                Background="#3B1212" BorderBrush="#7F1D1D" BorderThickness="1" Cursor="Hand"
+                                Click="DeleteAll_Click" ToolTip="{DynamicResource Loc_BtnDeleteAll}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#7F1D1D"/></Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <TextBlock Text="🗑" FontFamily="Segoe UI Emoji" FontSize="17" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#F87171"/>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Right: Primary Action -->
+                    <Button x:Name="DownloadButton" HorizontalAlignment="Right" Width="200" Height="44"
+                            Foreground="White" BorderThickness="0" FontSize="15" FontWeight="Bold"
+                            Cursor="Hand" Click="DownloadButton_Click"
+                            ToolTip="{DynamicResource Loc_BtnStartSelected}">
+                        <Button.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#0369A1" Offset="0"/>
+                                <GradientStop Color="#0EA5E9" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Button.Background>
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="12">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bg" Property="Opacity" Value="0.88"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="bg" Property="Opacity" Value="0.72"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="▶" FontFamily="Segoe UI Emoji" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="Start Selected" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Grid>
+        </Border>
         </Grid>
     </Grid>
 </Window>

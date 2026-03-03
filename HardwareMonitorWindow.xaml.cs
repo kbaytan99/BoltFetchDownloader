@@ -11,6 +11,7 @@ namespace BoltFetch
         private HardwareMonitorService _monitorService;
         private DispatcherTimer _timer;
         private bool _isUpdating = false;
+        private bool _namesApplied = false;
 
         private const int MaxHistory = 60; // 60 seconds
         private List<double> _cpuHistory = new List<double>();
@@ -51,6 +52,16 @@ namespace BoltFetch
                     RamDetailsText.Text = $"{(metrics.RamUsedMB):F0} MB / {(metrics.RamTotalMB):F0} MB";
                     GpuText.Text = $"{metrics.GpuUsage:F1} %";
                     DiskTimeText.Text = $"{metrics.DiskTimeUsage:F1} %";
+
+                    // Apply hardware names once after first successful data read
+                    if (!_namesApplied)
+                    {
+                        _namesApplied = true;
+                        CpuLabel.Text = $"CPU  —  {_monitorService.CpuName}";
+                        RamLabel.Text = $"RAM  —  {_monitorService.RamInfo}";
+                        GpuLabel.Text = $"GPU (3D)  —  {_monitorService.GpuName}";
+                        NetLabel.Text = $"NETWORK  —  {_monitorService.NetworkAdapterName}";
+                    }
 
                     DiskReadText.Text = FormatBytesToSize(metrics.DiskReadBytesPerSec);
                     DiskWriteText.Text = FormatBytesToSize(metrics.DiskWriteBytesPerSec);

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 
 namespace BoltFetch.Services
 {
@@ -23,6 +24,12 @@ namespace BoltFetch.Services
 
     public class HardwareMonitorService : IDisposable
     {
+        // Hardware component name strings
+        public string CpuName { get; private set; } = "CPU";
+        public string GpuName { get; private set; } = "GPU";
+        public string NetworkAdapterName { get; private set; } = "Network";
+        public string RamInfo { get; private set; } = "RAM";
+
         private PerformanceCounter _cpuCounter;
         private PerformanceCounter _ramAvailableCounter;
         private PerformanceCounter _diskReadCounter;
@@ -55,6 +62,7 @@ namespace BoltFetch.Services
                 _diskTimeCounter = new PerformanceCounter("PhysicalDisk", "% Disk Time", "_Total");
                 
                 GetTotalMemory();
+                ReadHardwareNames();
 
                 if (PerformanceCounterCategory.Exists("GPU Engine"))
                 {
@@ -103,7 +111,46 @@ namespace BoltFetch.Services
                 if (GlobalMemoryStatusEx(ref memStatus))
                 {
                     _totalPhysicalMemory = memStatus.ullTotalPhys;
+                    double totalMB = _totalPhysicalMemory / (1024.0 * 1024.0);
+                    RamInfo = totalMB >= 1024
+                        ? $"{(totalMB / 1024.0):F1} GB"
+                        : $"{totalMB:F0} MB";
                 }
+            }
+            catch { }
+        }
+
+        private void ReadHardwareNames()
+        {
+            // CPU name from registry
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+                CpuName = key?.GetValue("ProcessorNameString") as string ?? "CPU";
+                CpuName = CpuName.Trim();
+            }
+            catch { }
+
+            // GPU name from registry (display adapter key)
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(
+                    @"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000");
+                GpuName = key?.GetValue("DriverDesc") as string ?? "GPU";
+                GpuName = GpuName.Trim();
+            }
+            catch { }
+
+            // Network adapter name – highest-speed active non-loopback NIC
+            try
+            {
+                var nic = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(n => n.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up
+                             && n.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
+                    .OrderByDescending(n => n.Speed)
+                    .FirstOrDefault();
+                if (nic != null)
+                    NetworkAdapterName = nic.Description?.Trim() ?? "Network";
             }
             catch { }
         }
