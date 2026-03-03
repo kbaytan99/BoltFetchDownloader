@@ -93,6 +93,29 @@ namespace BoltFetch
             await FetchFilesBatch(links.ToList());
         }
 
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.V && System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.Control)
+            {
+                if (System.Windows.Clipboard.ContainsText())
+                {
+                    string text = System.Windows.Clipboard.GetText().Trim();
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        var matches = Regex.Matches(text, @"(?:https?://)?(?:www\.)?gofile\.io/d/[a-zA-Z0-9\-]+", RegexOptions.IgnoreCase);
+                        if (matches.Count > 0)
+                        {
+                            var links = new string[matches.Count];
+                            for (int i = 0; i < matches.Count; i++) links[i] = matches[i].Value;
+                            
+                            // Prevent overlapping checks or double-calls if monitor fires at the exact same moment
+                            HandleDetectedLinks(links);
+                        }
+                    }
+                }
+            }
+        }
+
         #region System Tray & About logic
         private void SetupTrayIcon()
         {
@@ -134,7 +157,7 @@ namespace BoltFetch
             }
             catch (Exception ex) 
             {
-                System.Windows.MessageBox.Show("Tray icon kurulum hatası: " + ex.Message, "Hata", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                _notificationService.ShowMessage("Tray icon kurulum hatası: " + ex.Message);
             }
         }
 
@@ -370,7 +393,8 @@ namespace BoltFetch
             }
             catch (Exception ex)
             {
-                Dispatcher.Invoke(() => _notificationService.ShowMessage($"Error fetching folder content: {ex.Message}"));
+                string contexts = "Attempted URLs:\n" + string.Join("\n", urls);
+                Dispatcher.Invoke(() => _notificationService.ShowMessage($"Error fetching folder content: {ex.Message}", context: contexts));
             }
             finally
             {
@@ -514,7 +538,7 @@ namespace BoltFetch
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Error deleting files from disk: {ex.Message}");
+                _notificationService.ShowMessage($"Error deleting files from disk: {ex.Message}");
             }
         }
 

@@ -38,13 +38,15 @@ namespace BoltFetch
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
             var text = LinksTextBox.Text.Trim();
-            if (string.IsNullOrEmpty(text))
+            if (string.IsNullOrWhiteSpace(LinksTextBox.Text)) // Changed LinksInput.Text to LinksTextBox.Text to match existing control name
             {
-                System.Windows.MessageBox.Show("Please enter at least one link.", "Notice", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                var errorWin = new GlobalErrorWindow("Please enter at least one link.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
                 return;
             }
 
-            Links = Regex.Matches(text, @"https://gofile\.io/d/[a-zA-Z0-9]+")
+            Links = Regex.Matches(text, @"(?:https?://)?(?:www\.)?gofile\.io/d/[a-zA-Z0-9\-]+", RegexOptions.IgnoreCase)
                          .Cast<Match>()
                          .Select(m => m.Value)
                          .Distinct()
@@ -52,7 +54,9 @@ namespace BoltFetch
 
             if (!Links.Any())
             {
-                System.Windows.MessageBox.Show("No valid GoFile links found in the text.", "Notice", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                var errorWin = new GlobalErrorWindow("No valid GoFile links found in the text.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
                 return;
             }
 

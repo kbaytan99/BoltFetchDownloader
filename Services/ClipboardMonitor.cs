@@ -29,7 +29,7 @@ namespace BoltFetch.Services
                     string text = System.Windows.Clipboard.GetText().Trim();
                     if (string.IsNullOrEmpty(text) || text == _lastCapturedText) return;
 
-                    var matches = Regex.Matches(text, @"https://gofile\.io/d/[a-zA-Z0-9]+");
+                    var matches = Regex.Matches(text, @"(?:https?://)?(?:www\.)?gofile\.io/d/[a-zA-Z0-9\-]+", RegexOptions.IgnoreCase);
                     if (matches.Count > 0)
                     {
                         _lastCapturedText = text;

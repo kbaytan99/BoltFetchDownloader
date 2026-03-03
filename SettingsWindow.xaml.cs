@@ -60,7 +60,9 @@ namespace BoltFetch
             }
             else
             {
-                System.Windows.MessageBox.Show("Please enter valid numeric values.");
+                var errorWin = new GlobalErrorWindow("Please enter valid numeric values.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
             }
         }
 

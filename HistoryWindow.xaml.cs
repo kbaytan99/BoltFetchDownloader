@@ -46,7 +46,9 @@ namespace BoltFetch
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("Error loading history: " + ex.Message);
+                var errorWin = new GlobalErrorWindow("Error loading history: " + ex.Message);
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
             }
         }
 
