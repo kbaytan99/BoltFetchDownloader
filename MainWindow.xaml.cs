@@ -279,6 +279,8 @@ namespace BoltFetch
             {
                 if (win != this) RefreshWindowHeaders(win);
             }
+
+            UpdateSummary();
         }
 
         private void RefreshWindowHeaders(Window win)
@@ -429,14 +431,29 @@ namespace BoltFetch
         {
             if (sender is FrameworkElement element && element.DataContext is FileDisplayItem item)
             {
-                var filePath = Path.Combine(_settings.DownloadPath, item.Name);
+                // Account for SmartEngine smart paths (Category/FileName/)
+                var smartPath = Services.SmartEngine.GetSmartPath(item.Name);
+                var filePath = Path.Combine(_settings.DownloadPath, smartPath, item.Name);
+                
+                // Fallback to base path if not in category
+                if (!File.Exists(filePath))
+                    filePath = Path.Combine(_settings.DownloadPath, item.Name);
+
                 if (File.Exists(filePath))
                 {
                     System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{filePath}\"");
                 }
                 else
                 {
-                    _notificationService.ShowMessage("File not found on disk.");
+                    var title = FindResource("Loc_FileNotFoundTitle") as string ?? "File Not Found";
+                    var msg = FindResource("Loc_FileNotFoundMsg") as string ?? "File not found on disk. Remove from list?";
+                    var btnText = (FindResource("Loc_RowRemove") as string ?? "Remove").Replace("✖", "").Trim();
+
+                    if (ConfirmDialog.Show(this, title, msg, btnText, true))
+                    {
+                        FileItems.Remove(item);
+                        UpdateSummary();
+                    }
                 }
             }
         }
@@ -716,7 +733,7 @@ namespace BoltFetch
             FinishedCountText.Text = finished.ToString();
 
             // Downloaded / Remaining
-            long downloadedBytes = FileItems.Sum(i => i.SourceProgress?.BytesDownloaded ?? i.BytesDownloaded);
+            long downloadedBytes = FileItems.Sum(i => i.Status == "Completed" ? i.Source.Size : (i.SourceProgress?.BytesDownloaded ?? i.BytesDownloaded));
             long remainingBytes = Math.Max(0, totalBytes - downloadedBytes);
             DownloadedSizeText.Text = FormatSizeGB(downloadedBytes);
             RemainingSizeText.Text = FormatSizeGB(remainingBytes);

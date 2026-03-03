@@ -118,6 +118,26 @@ namespace BoltFetch.Services
         }
 
         /// <summary>
+        /// Returns a relative path like "Games\Cyberpunk" based on the filename.
+        /// Cleans up common archive part suffixes to group them in the same folder.
+        /// </summary>
+        public static string GetSmartPath(string fileName)
+        {
+            var category = CategorizeFile(fileName);
+            
+            // Clean filename for subfolder (remove .part01, .z01, etc.)
+            var folderName = Path.GetFileNameWithoutExtension(fileName);
+            
+            // Regex to remove common multi-part patterns or trailing numbers/dots
+            // 1. .part01, .part1, _part01 etc.
+            folderName = Regex.Replace(folderName, @"(?i)[\._-]part\d+$", "");
+            // 2. .7z.001, .zip.001 case (if already grabbed by GetFileNameWithoutExtension)
+            folderName = Regex.Replace(folderName, @"(?i)\.\d{3}$", ""); 
+
+            return Path.Combine(category, folderName);
+        }
+
+        /// <summary>
         /// Get the optimal segment count based on historical data.
         /// Learns from past download performance.
         /// </summary>

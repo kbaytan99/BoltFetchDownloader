@@ -78,9 +78,9 @@ namespace BoltFetch.Models
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             try
             {
-                // SmartEngine: auto-categorize into subfolder
-                var category = Services.SmartEngine.CategorizeFile(item.Name);
-                var finalFolder = Path.Combine(destinationFolder, category);
+                // SmartEngine: auto-categorize into smart subfolder
+                var smartPath = Services.SmartEngine.GetSmartPath(item.Name);
+                var finalFolder = Path.Combine(destinationFolder, smartPath);
                 if (!Directory.Exists(finalFolder)) Directory.CreateDirectory(finalFolder);
 
                 var destinationPath = Path.Combine(finalFolder, item.Name);
@@ -133,7 +133,7 @@ namespace BoltFetch.Models
                     SegmentsUsed = smartSegments,
                     AverageSpeedMBps = item.Size / (1024.0 * 1024) / Math.Max(stopwatch.Elapsed.TotalSeconds, 0.1),
                     DurationSeconds = stopwatch.Elapsed.TotalSeconds,
-                    Category = category
+                    Category = Services.SmartEngine.CategorizeFile(item.Name)
                 });
 
                 DownloadCompleted?.Invoke(item.Id, destinationPath);
@@ -165,17 +165,22 @@ namespace BoltFetch.Models
             }
             
             // Segmented case (check state file)
-            var statePath = destinationPath + ".downloading.state";
-            if (File.Exists(statePath))
+            var tempPath = destinationPath + ".downloading";
+            var statePath = tempPath + ".state";
+            
+            if (File.Exists(tempPath) && File.Exists(statePath))
             {
                 try
                 {
+                    var fileLen = new FileInfo(tempPath).Length;
                     var stateJson = File.ReadAllText(statePath);
                     var state = JsonConvert.DeserializeObject<List<int>>(stateJson);
                     if (state != null)
                     {
                         const long CHUNK_SIZE = 4 * 1024 * 1024;
-                        existing = (long)state.Count * CHUNK_SIZE;
+                        long totalFromState = (long)state.Count * CHUNK_SIZE;
+                        // Use the minimum of state and actual file length on disk
+                        existing = Math.Min(totalFromState, fileLen);
                     }
                 }
                 catch { }
@@ -262,10 +267,16 @@ namespace BoltFetch.Models
 
         private async Task DownloadSegmentedAsync(GoFileItem item, string destinationPath, DownloadProgress progress, CancellationToken cancellationToken)
         {
+            const long CHUNK_SIZE = 4 * 1024 * 1024; // 4MB chunks
+            int totalChunks = (int)Math.Ceiling((double)item.Size / CHUNK_SIZE);
+
             // --- RESUMPTION LOGIC: LOAD STATE ---
             var statePath = destinationPath + ".state";
             var completedChunks = new HashSet<int>();
-            if (File.Exists(statePath))
+            
+            // Critical check: only trust state if the temp file exists and has expected allocated size
+            bool isResume = File.Exists(destinationPath);
+            if (isResume && File.Exists(statePath))
             {
                 try
                 {
@@ -275,10 +286,13 @@ namespace BoltFetch.Models
                 }
                 catch { }
             }
+            else if (isResume && !File.Exists(statePath))
+            {
+                // File exists but no state? Delete and start over to be safe
+                try { File.Delete(destinationPath); } catch { }
+            }
 
-            const long CHUNK_SIZE = 4 * 1024 * 1024; // 4MB chunks
             var chunks = new ConcurrentQueue<(long start, long end, int index)>();
-            int totalChunks = (int)Math.Ceiling((double)item.Size / CHUNK_SIZE);
 
             for (int i = 0; i < totalChunks; i++)
             {

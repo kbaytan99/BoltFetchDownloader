@@ -90,4 +90,6 @@
     <system:String x:Key="Loc_AddOnePerLine">Her satıra bir link</system:String>
     <system:String x:Key="Loc_BtnConfirm">Onayla</system:String>
     <system:String x:Key="Loc_ConfirmTitle">Onay</system:String>
+    <system:String x:Key="Loc_FileNotFoundTitle">Dosya Bulunamadı</system:String>
+    <system:String x:Key="Loc_FileNotFoundMsg">Dosya diskte bulunamadı. Bu öğeyi listeden kaldırmak istiyor musunuz?</system:String>
 </ResourceDictionary>

@@ -90,4 +90,6 @@
     <system:String x:Key="Loc_AddOnePerLine">One URL per line</system:String>
     <system:String x:Key="Loc_BtnConfirm">Confirm</system:String>
     <system:String x:Key="Loc_ConfirmTitle">Confirm</system:String>
+    <system:String x:Key="Loc_FileNotFoundTitle">File Not Found</system:String>
+    <system:String x:Key="Loc_FileNotFoundMsg">The file was not found on disk. Do you want to remove this item from the list?</system:String>
 </ResourceDictionary>
