@@ -104,7 +104,7 @@ namespace BoltFetch.Models
 
         public async Task<List<GoFileItem>> GetFolderContents(string folderCode)
         {
-            int maxRetries = 2;
+            int maxRetries = 5;
             for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
                 try
@@ -120,6 +120,16 @@ namespace BoltFetch.Models
 
                     var response = await _httpClient.SendAsync(request);
                     
+                    if ((int)response.StatusCode == 429)
+                    {
+                        BoltFetch.Services.Logger.Warn($"GoFile rate limit (429) reached for folder '{folderCode}'. Waiting before retry...");
+                        if (attempt < maxRetries) 
+                        {
+                            await Task.Delay(3000 * attempt);
+                            continue;
+                        }
+                    }
+
                     if ((int)response.StatusCode == 401 || (int)response.StatusCode == 403)
                     {
                         BoltFetch.Services.Logger.Warn($"GoFile token expired for folder '{folderCode}', status: {response.StatusCode}.");
