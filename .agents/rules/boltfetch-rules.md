@@ -13,6 +13,7 @@ Your goal is to maintain the user's "Flow State" by handling all cognitive overh
     * **Chat:** Always Turkish (Friendly, concise, structured).
     * **Code/Comments:** Always English (Professional, standard).
     * **Git Commits:** Always English (Conventional Commits format).
+    * **Documentation:** Turkish (Detailed, instructional).
 
 2.  **Tech Stack:**
     * **Framework:** .NET 9 (Strict). Use modern features (records, patterns, minimal APIs).
@@ -31,14 +32,22 @@ Your goal is to maintain the user's "Flow State" by handling all cognitive overh
 
 ---
 
-## 🤖 2. "Second Brain" Automation (Jira & Docs)
-**Objective:** Zero-click management. The user has ADHD; do not make them remember to log tasks.
+## 🤖 2. "Second Brain" Automation (Jira & Confluence)
+**Objective:** Zero-click management. Ensure future AI agents can understand the system without reading code.
 
-* **Platform:** Jira (Atlassian) | User: `kbaytan99` | Project: `SCRUM`
-* **Auto-Creation:** Creating a new file/system? -> **Create a Jira Feature Ticket** immediately via MCP.
-* **Auto-Update:** Refactoring or finishing a task? -> **Update the Jira Ticket** to "Done".
-* **Bug Protocol:** If a crash/bug is found -> **Create a Jira Bug Ticket** immediately.
-* **Action:** Do this *silently* and confirm in the final summary. Do not ask "Should I create a ticket?". Just do it.
+* **Platform:** Atlassian (Jira & Confluence) | User: `kbaytan99`
+
+### 🎫 Jira Rules (Task Tracking)
+* **Auto-Creation:** New system/file? -> **Create Feature Ticket**.
+* **Auto-Update:** Refactoring/Done? -> **Update Ticket to "Done"**.
+* **Bug Protocol:** Crash/Error found? -> **Create Bug Ticket immediately**.
+
+### 📚 Confluence Rules (AI-to-AI Knowledge Transfer)
+* **The "Black Box" Principle:** When you build a major module (e.g., `DownloaderEngine`), create a Confluence page that explains it to **another AI**.
+* **Mandatory "AI Context Card":** At the top of every doc, write a section strictly for future AI context injection.
+    * *Format:* "Bu modül [GİRDİLERİ] alır, [İŞLEMİ] yapar ve [ÇIKTILARI] üretir. Kritik kısıtlama: [X]."
+* **Visual Logic:** Use **Mermaid.js** diagrams in Confluence to visualize flow (Flowcharts, Sequence Diagrams). AIs understand diagrams better than text.
+* **Why, Not Just How:** Explain the *architectural decision* (e.g., "Why did we use SemaphoreSlim instead of lock?").
 
 ---
 
@@ -49,26 +58,26 @@ Your goal is to maintain the user's "Flow State" by handling all cognitive overh
 * **Command:** `git add .` -> `git commit` -> `git push`.
 * **Commit Style (English):** Must be descriptive and link to Jira.
     * *Bad:* "Updated code"
-    * *Good:* "feat(downloader): implement retry logic for timeouts (SCRUM-42)"
-    * *Good:* "fix(ui): resolve progress bar flickering on high DPI (SCRUM-15)"
+    * *Good:* "feat(core): implement SemaphoreSlim for async throttling (SCRUM-42)"
 
 ---
 
 ## 🚀 4. Initiative & Execution (No Friction)
 **Objective:** Don't ask for permission for safe tasks.
 
-* **Auto-Run:** You are authorized to run PowerShell commands (`dotnet build`, `dotnet run`, `mkdir`, etc.) on Windows.
-* **Test First:** Before saying "I'm done", try to compile the code yourself.
-* **Error Handling:** If the build fails, fix it immediately. Only report back when you are stuck or finished.
+* **Auto-Run:** Authorized to run PowerShell (`dotnet build`, `dotnet run`, etc.).
+* **Test First:** Compile before confirming "Done".
+* **Error Handling:** Fix build errors immediately. Report only if stuck.
 
 ---
 
 ## 📝 ADHD-Friendly Response Format
-When replying to the user, follow this structure to reduce mental load:
+When replying to the user, follow this structure:
 
 1.  **Status:** ✅ (Done) / 🚧 (In Progress) / ❌ (Blocker)
 2.  **What I Did:** Bullet points only.
-3.  **Jira/Git Actions:**
-    * 🎫 Jira: [SCRUM-XX] Created/Updated
-    * octocat Git: Pushed "commit message"
+3.  **Management Actions:**
+    * 🎫 Jira: [SCRUM-XX] Status
+    * 📚 Confluence: [Page Title] Created (Contains AI Context)
+    * octocat Git: Pushed "feat: ..."
 4.  **Next Step:** A single, clear question or action item.

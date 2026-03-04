@@ -26,6 +26,8 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<IDownloadManager, DownloadManager>();
                 services.AddSingleton<IGoFileService, GoFileService>();
                 services.AddSingleton<ITrayIconService, TrayIconService>();
+                services.AddSingleton<ILinkProcessingService, LinkProcessingService>();
+                services.AddSingleton<IDownloadCleanupService, DownloadCleanupService>();
 
                 // ViewModels
                 services.AddSingleton<ViewModels.MainViewModel>();

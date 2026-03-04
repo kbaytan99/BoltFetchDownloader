@@ -26,6 +26,8 @@ namespace BoltFetch
         private readonly IDownloadManager _downloadManager;
         private readonly ISettingsService _settingsService;
         private readonly ITrayIconService _trayIconService;
+        private readonly ILinkProcessingService _linkProcessingService;
+        private readonly IDownloadCleanupService _downloadCleanupService;
         public ViewModels.MainViewModel ViewModel { get; }
 
         private UserSettings _settings;
@@ -43,7 +45,13 @@ namespace BoltFetch
         private System.Windows.Point _dragStartPoint;
         private FileDisplayItem? _draggedItem;
 
-        public MainWindow(ViewModels.MainViewModel viewModel, ISettingsService settingsService, IDownloadManager downloadManager, IGoFileService goFileService, ITrayIconService trayIconService)
+        public MainWindow(ViewModels.MainViewModel viewModel, 
+            ISettingsService settingsService, 
+            IDownloadManager downloadManager, 
+            IGoFileService goFileService, 
+            ITrayIconService trayIconService,
+            ILinkProcessingService linkProcessingService,
+            IDownloadCleanupService downloadCleanupService)
         {
             InitializeComponent();
             ViewModel = viewModel;
@@ -53,6 +61,9 @@ namespace BoltFetch
             _goFileService = goFileService;
             _downloadManager = downloadManager;
             _trayIconService = trayIconService;
+            _linkProcessingService = linkProcessingService;
+            _downloadCleanupService = downloadCleanupService;
+
             _settings = _settingsService.Load();
             _orchestrator = new DownloadOrchestrator((DownloadManager)_downloadManager, _settings);
             
@@ -247,74 +258,25 @@ namespace BoltFetch
         #region Download Queue Initialization
         private async Task FetchFilesBatch(List<string> urls)
         {
+            if (urls == null || !urls.Any()) return;
+            
             Dispatcher.Invoke(() => AddButton.IsEnabled = false);
-
-            int totalAdded = 0;
-            long totalSize = 0;
 
             try
             {
-                foreach (var url in urls)
+                var processedItems = await _linkProcessingService.ProcessLinksAsync(urls, _settings.DownloadPath);
+                
+                // deduplication against current items safely
+                var existingIds = new HashSet<string>(FileItems.Select(i => i.Source.Id));
+                var newItems = processedItems.Where(i => !existingIds.Contains(i.Source.Id)).ToList();
+
+                if (newItems.Any())
                 {
-                    var folderCode = url.Split('/').LastOrDefault();
-                    if (string.IsNullOrEmpty(folderCode)) continue;
-
-                    var items = await _goFileService.GetFolderContents(folderCode);
-                    
-                    Services.Logger.Info($"FetchFilesBatch: Retrieved {items.Count} items from GoFile for folder {folderCode}.");
-
-                    // Build a HashSet for O(1) duplicate checking safely from the UI thread
-                    HashSet<string> existingIds = new HashSet<string>();
-                    Dispatcher.Invoke(() => 
-                    {
-                        foreach (var itm in FileItems) existingIds.Add(itm.Source.Id);
-                    });
-
-                    // Do the heavy lifting (Disk I/O, object creation) on a background thread
-                    var newDisplayItems = await Task.Run(() => 
-                    {
-                        var processedList = new List<FileDisplayItem>();
-                        foreach (var goItem in items)
-                        {
-                            if (existingIds.Contains(goItem.Id)) continue; // O(1) deduplication
-
-                            var displayItem = new FileDisplayItem(goItem);
-                            var tempProgress = new DownloadProgress { FileName = goItem.Name, TotalBytes = goItem.Size };
-                            
-                            // Disk I/O performed here on background thread
-                            _downloadManager.UpdateProgressFromExistingParts(goItem, _settings.DownloadPath, tempProgress);
-                            
-                            displayItem.ProgressValue = tempProgress.ProgressPercentage;
-                            displayItem.ProgressText = tempProgress.ProgressText;
-                            
-                            if (displayItem.ProgressValue >= 100)
-                            {
-                                displayItem.Status = "Completed";
-                                displayItem.ProgressValue = 100;
-                            }
-                            else if (displayItem.ProgressValue > 0)
-                            {
-                                displayItem.Status = "Stopped";
-                            }
-
-                            processedList.Add(displayItem);
-                        }
-                        return processedList;
-                    });
-
-                    Services.Logger.Info($"FetchFilesBatch: {newDisplayItems.Count} new distinct items will be added to the UI.");
-
-                    // Add all processed items at once using our new Bulk collection
                     await Dispatcher.InvokeAsync(() => {
-                        FileItems.AddRange(newDisplayItems);
-                        totalAdded += newDisplayItems.Count;
-                        foreach(var di in newDisplayItems) totalSize += di.Source.Size;
+                        FileItems.AddRange(newItems);
+                        long totalSize = newItems.Sum(i => i.Source.Size);
+                        _notificationService.ShowPopup($"{newItems.Count} Files Found! 🚀", $"{newItems.Count} files ({FormatSizeGB(totalSize)}) added to the list.");
                     }, System.Windows.Threading.DispatcherPriority.Background);
-                }
-
-                if (totalAdded > 0)
-                {
-                    _notificationService.ShowPopup($"{totalAdded} Files Found! 🚀", $"{totalAdded} files ({FormatSizeGB(totalSize)}) added to the list.");
                 }
             }
             catch (Exception ex)
@@ -422,51 +384,28 @@ namespace BoltFetch
 
         private void DeleteItemButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is FrameworkElement element && element.DataContext is FileDisplayItem item)
+            if (sender is FrameworkElement { DataContext: FileDisplayItem item })
             {
                 if (ConfirmDialog.Show(this, "Permanent Deletion", $"PERMANENTLY delete '{item.Name}' from disk AND list?\n\nThis cannot be undone.", "Delete", isDanger: true))
                 {
-                    // 1. Cancel if active
                     _downloadManager.CancelDownload(item.Source.Id);
                     
-                    // 2. Delete files from disk
-                    DeleteFilesForDisplayItem(item);
+                    try 
+                    {
+                        _downloadCleanupService.DeleteDownloadFiles(_settings.DownloadPath, item.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        _notificationService.ShowMessage($"Error deleting files: {ex.Message}");
+                    }
 
-                    // 3. Remove from UI list
                     FileItems.Remove(item);
                     UpdateSummary();
                 }
             }
         }
 
-        private void DeleteFilesForDisplayItem(FileDisplayItem item)
-        {
-            try
-            {
-                var filePath = Path.Combine(_settings.DownloadPath, item.Name);
-                if (File.Exists(filePath)) File.Delete(filePath);
-                
-                var downloadingPath = filePath + ".downloading";
-                if (File.Exists(downloadingPath)) File.Delete(downloadingPath);
-                
-                var statePath = filePath + ".downloading.state";
-                if (File.Exists(statePath)) File.Delete(statePath);
-                
-                var oldStatePath = filePath + ".state";
-                if (File.Exists(oldStatePath)) File.Delete(oldStatePath);
-                
-                // Clean up old fragments (.part files)
-                for (int i = 1; i <= 64; i++) // Scan a bit higher just in case
-                {
-                    var partPath = filePath + ".part" + i;
-                    if (File.Exists(partPath)) File.Delete(partPath);
-                }
-            }
-            catch (Exception ex)
-            {
-                _notificationService.ShowMessage($"Error deleting files from disk: {ex.Message}");
-            }
-        }
+        // Deleted internal method - functionality moved to DownloadCleanupService
 
         private void SelectAll_Click(object sender, RoutedEventArgs e)
         {
@@ -504,6 +443,8 @@ namespace BoltFetch
                 ? FilesDataGrid.SelectedItems.Cast<FileDisplayItem>().ToList() 
                 : FileItems.ToList();
             
+            if (!targetItems.Any()) return;
+
             string prompt = targetItems.Count == FileItems.Count 
                 ? $"Are you sure you want to PERMANENTLY delete ALL {FileItems.Count} items from disk AND list?"
                 : $"Are you sure you want to PERMANENTLY delete the selected {targetItems.Count} items from disk AND list?";
@@ -513,7 +454,7 @@ namespace BoltFetch
                 foreach (var item in targetItems)
                 {
                     _downloadManager.CancelDownload(item.Source.Id);
-                    DeleteFilesForDisplayItem(item);
+                    try { _downloadCleanupService.DeleteDownloadFiles(_settings.DownloadPath, item.Name); } catch { /* ignore in bulk delete or log */ }
                     FileItems.Remove(item);
                 }
                 UpdateSummary();
@@ -657,13 +598,6 @@ namespace BoltFetch
             int queued = FileItems.Count(i => i.Status == "Pending");
             int active = FileItems.Count(i => i.Status == "Downloading...");
             int finished = FileItems.Count(i => i.Status == "Completed");
-
-            if (_lastActiveCount > 0 && active == 0)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-            }
             _lastActiveCount = active;
 
             TotalSizeText.Text = FormatSizeGB(totalBytes);
