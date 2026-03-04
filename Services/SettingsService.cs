@@ -1,24 +1,15 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using BoltFetch.Models;
 
-namespace BoltFetch.Models
+namespace BoltFetch.Services
 {
-    public class UserSettings
+    public class SettingsService : ISettingsService
     {
-        public string DownloadPath { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "BoltFetch");
-        public int SpeedLimitKB { get; set; } = 0; // 0 = No limit
-        public int MaxParallelDownloads { get; set; } = Services.SmartEngine.GetHardwareOptimizedParallelDownloads();
-        public int SegmentsPerFile { get; set; } = 4;
-        public string Language { get; set; } = "en";
-        public Dictionary<string, double> ColumnWidths { get; set; } = new Dictionary<string, double>();
-    }
+        private readonly string SettingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
 
-    public static class SettingsService
-    {
-        private static readonly string SettingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
-
-        public static UserSettings Load()
+        public UserSettings Load()
         {
             try
             {
@@ -32,7 +23,7 @@ namespace BoltFetch.Models
             return new UserSettings();
         }
 
-        public static void Save(UserSettings settings)
+        public void Save(UserSettings settings)
         {
             try
             {

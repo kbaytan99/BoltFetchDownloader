@@ -9,10 +9,11 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks;
+using BoltFetch.Models;
 
-namespace BoltFetch.Models
+namespace BoltFetch.Services
 {
-    public class DownloadManager
+    public class DownloadManager : IDownloadManager
     {
         private static readonly HttpClient _httpClient;
         private SemaphoreSlim _semaphore;
@@ -48,9 +49,12 @@ namespace BoltFetch.Models
         public event Action<string, string>? DownloadFailed;
         public event Action<string>? DownloadCancelled;
 
-        public DownloadManager(int maxParallelDownloads = 3)
+        public DownloadManager(ISettingsService settingsService)
         {
-            _semaphore = new SemaphoreSlim(maxParallelDownloads);
+            var config = settingsService.Load();
+            _semaphore = new SemaphoreSlim(config.MaxParallelDownloads);
+            SpeedLimitKB = config.SpeedLimitKB;
+            SegmentsPerFile = config.SegmentsPerFile;
         }
 
         public void UpdateParallelLimit(int limit)
@@ -67,6 +71,16 @@ namespace BoltFetch.Models
                 cts.Cancel();
                 DownloadCancelled?.Invoke(itemId);
             }
+        }
+
+        public void CancelAll()
+        {
+            foreach (var kvp in _cancellationMap)
+            {
+                kvp.Value.Cancel();
+                DownloadCancelled?.Invoke(kvp.Key);
+            }
+            _cancellationMap.Clear();
         }
 
         public async Task DownloadFileAsync(GoFileItem item, string destinationFolder, CancellationToken externalToken = default)
@@ -480,7 +494,10 @@ namespace BoltFetch.Models
             }
         }
     }
+}
 
+namespace BoltFetch.Models
+{
     public class DownloadProgress
     {
         public string FileName { get; set; } = string.Empty;

@@ -6,10 +6,11 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using BoltFetch.Models;
 
-namespace BoltFetch.Models
+namespace BoltFetch.Services
 {
-    public class GoFileService : IDownloadProvider
+    public class GoFileService : IGoFileService
     {
         public string Name => "GoFile";
         
@@ -196,7 +197,10 @@ namespace BoltFetch.Models
             return new List<GoFileItem>();
         }
     }
+}
 
+namespace BoltFetch.Models
+{
     public class GoFileItem
     {
         public string Id { get; set; } = string.Empty;

@@ -1,0 +1,14 @@
+  Geri yüklenecek projeler belirleniyor...
+  Geri yükleme için tüm projeler güncel.
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(58,30): warning CS0168: 'ex' değişkeni ifade edilir ancak hiçbir zaman kullanılmaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_4ciucucp_wpftmp.csproj]
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(58,30): warning CS0168: 'ex' değişkeni ifade edilir ancak hiçbir zaman kullanılmaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader.csproj]
+  BoltFetchDownloader -> C:\Users\kaan\Documents\KDownloader\bin\Debug\net9.0-windows\BoltFetchDownloader.dll
+
+Oluşturma başarılı oldu.
+
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(58,30): warning CS0168: 'ex' değişkeni ifade edilir ancak hiçbir zaman kullanılmaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_4ciucucp_wpftmp.csproj]
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(58,30): warning CS0168: 'ex' değişkeni ifade edilir ancak hiçbir zaman kullanılmaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader.csproj]
+    2 Uyarı
+    0 Hata
+
+Geçen Süre 00:00:01.24

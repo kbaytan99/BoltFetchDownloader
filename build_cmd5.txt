@@ -1,0 +1,13 @@
+  Geri yüklenecek projeler belirleniyor...
+  Geri yükleme için tüm projeler güncel.
+C:\Users\kaan\Documents\KDownloader\ViewModels\MainViewModel.cs(95,30): error CS1061: 'IDownloadManager' bir 'CancelAll' tanımı içermiyor ve 'IDownloadManager' türünde bir ilk bağımsız değişken kabul eden hiçbir erişilebilir 'CancelAll' genişletme yöntemi bulunamadı (bir kullanma yönergeniz veya derleme başvurunuz eksik olabilir mi?) [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_11alxxce_wpftmp.csproj]
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(58,30): warning CS0168: 'ex' değişkeni ifade edilir ancak hiçbir zaman kullanılmaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_11alxxce_wpftmp.csproj]
+
+Oluşturma BAŞARISIZ OLDU.
+
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(58,30): warning CS0168: 'ex' değişkeni ifade edilir ancak hiçbir zaman kullanılmaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_11alxxce_wpftmp.csproj]
+C:\Users\kaan\Documents\KDownloader\ViewModels\MainViewModel.cs(95,30): error CS1061: 'IDownloadManager' bir 'CancelAll' tanımı içermiyor ve 'IDownloadManager' türünde bir ilk bağımsız değişken kabul eden hiçbir erişilebilir 'CancelAll' genişletme yöntemi bulunamadı (bir kullanma yönergeniz veya derleme başvurunuz eksik olabilir mi?) [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_11alxxce_wpftmp.csproj]
+    1 Uyarı
+    1 Hata
+
+Geçen Süre 00:00:00.95

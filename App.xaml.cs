@@ -1,7 +1,11 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.Data;
 using System.Reflection;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using BoltFetch.Services;
 
 namespace BoltFetch;
 
@@ -10,8 +14,31 @@ namespace BoltFetch;
 /// </summary>
 public partial class App : System.Windows.Application
 {
-    protected override void OnStartup(StartupEventArgs e)
+    public static IHost? AppHost { get; private set; }
+
+    public App()
     {
+        AppHost = Host.CreateDefaultBuilder()
+            .ConfigureServices((context, services) =>
+            {
+                // Core Services
+                services.AddSingleton<ISettingsService, SettingsService>();
+                services.AddSingleton<IDownloadManager, DownloadManager>();
+                services.AddSingleton<IGoFileService, GoFileService>();
+                services.AddSingleton<ITrayIconService, TrayIconService>();
+
+                // ViewModels
+                services.AddSingleton<ViewModels.MainViewModel>();
+
+                // Windows
+                services.AddSingleton<MainWindow>();
+            })
+            .Build();
+    }
+
+    protected override async void OnStartup(StartupEventArgs e)
+    {
+        await AppHost!.StartAsync();
         base.OnStartup(e);
 
         // Setup Global Exception Handlers
@@ -28,6 +55,15 @@ public partial class App : System.Windows.Application
         if (version.Contains('+')) version = version[..version.IndexOf('+')];
 
         this.Resources["Loc_AppVersion"] = $"Version {version}";
+
+        var mainWindow = AppHost.Services.GetRequiredService<MainWindow>();
+        mainWindow.Show();
+    }
+
+    protected override async void OnExit(ExitEventArgs e)
+    {
+        await AppHost!.StopAsync();
+        base.OnExit(e);
     }
 
     private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

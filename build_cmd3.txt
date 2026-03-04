@@ -1,0 +1,17 @@
+  Geri yüklenecek projeler belirleniyor...
+  Geri yükleme için tüm projeler güncel.
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(30,38): error CS0104: 'Application', 'System.Windows.Forms.Application' ile 'System.Windows.Application' arasında belirsiz bir başvuru [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_kwx130uk_wpftmp.csproj]
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(55,63): error CS0104: 'Application', 'System.Windows.Forms.Application' ile 'System.Windows.Application' arasında belirsiz bir başvuru [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_kwx130uk_wpftmp.csproj]
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(58,30): warning CS0168: 'ex' değişkeni ifade edilir ancak hiçbir zaman kullanılmaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_kwx130uk_wpftmp.csproj]
+C:\Users\kaan\Documents\KDownloader\MainWindow.xaml.cs(36,35): warning CS0169: 'MainWindow._notifyIcon' alanı hiçbir zaman kullanılmaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_kwx130uk_wpftmp.csproj]
+
+Oluşturma BAŞARISIZ OLDU.
+
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(58,30): warning CS0168: 'ex' değişkeni ifade edilir ancak hiçbir zaman kullanılmaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_kwx130uk_wpftmp.csproj]
+C:\Users\kaan\Documents\KDownloader\MainWindow.xaml.cs(36,35): warning CS0169: 'MainWindow._notifyIcon' alanı hiçbir zaman kullanılmaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_kwx130uk_wpftmp.csproj]
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(30,38): error CS0104: 'Application', 'System.Windows.Forms.Application' ile 'System.Windows.Application' arasında belirsiz bir başvuru [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_kwx130uk_wpftmp.csproj]
+C:\Users\kaan\Documents\KDownloader\Services\TrayIconService.cs(55,63): error CS0104: 'Application', 'System.Windows.Forms.Application' ile 'System.Windows.Application' arasında belirsiz bir başvuru [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_kwx130uk_wpftmp.csproj]
+    2 Uyarı
+    2 Hata
+
+Geçen Süre 00:00:00.84

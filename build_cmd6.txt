@@ -1,0 +1,11 @@
+  Geri yüklenecek projeler belirleniyor...
+  Geri yükleme için tüm projeler güncel.
+C:\Users\kaan\Documents\KDownloader\Services\DownloadManager.cs(16,36): error CS0535: 'DownloadManager', 'IDownloadManager.CancelAll()' arabirim üyesini uygulamaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_iuf104lg_wpftmp.csproj]
+
+Oluşturma BAŞARISIZ OLDU.
+
+C:\Users\kaan\Documents\KDownloader\Services\DownloadManager.cs(16,36): error CS0535: 'DownloadManager', 'IDownloadManager.CancelAll()' arabirim üyesini uygulamaz [C:\Users\kaan\Documents\KDownloader\BoltFetchDownloader_iuf104lg_wpftmp.csproj]
+    0 Uyarı
+    1 Hata
+
+Geçen Süre 00:00:00.81
