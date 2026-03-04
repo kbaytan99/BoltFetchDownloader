@@ -115,10 +115,14 @@ namespace BoltFetch.Models
                     request.Headers.Add("Authorization", $"Bearer {_guestToken}");
                     request.Headers.Add("X-Website-Token", _websiteToken);
 
+                    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                    BoltFetch.Services.Logger.Info($"Targeting GoFile folder '{folderCode}', attempt {attempt}...");
+
                     var response = await _httpClient.SendAsync(request);
                     
                     if ((int)response.StatusCode == 401 || (int)response.StatusCode == 403)
                     {
+                        BoltFetch.Services.Logger.Warn($"GoFile token expired for folder '{folderCode}', status: {response.StatusCode}.");
                         _guestToken = "";
                         _websiteToken = "";
                         if (attempt < maxRetries) continue;
@@ -127,16 +131,21 @@ namespace BoltFetch.Models
                     response.EnsureSuccessStatusCode();
 
                     var content = await response.Content.ReadAsStringAsync();
+                    stopwatch.Stop();
+                    BoltFetch.Services.Logger.Info($"GoFile folder '{folderCode}' returned in {stopwatch.ElapsedMilliseconds} ms. Response length: {content.Length}");
+
                     var json = JObject.Parse(content);
                     
                     if (json["status"]?.ToString() != "ok")
                     {
                         if (json["status"]?.ToString() == "error-auth" && attempt < maxRetries)
                         {
+                            BoltFetch.Services.Logger.Warn($"GoFile error-auth status for folder '{folderCode}'.");
                             _guestToken = "";
                             _websiteToken = "";
                             continue;
                         }
+                        BoltFetch.Services.Logger.Error($"GoFile API returned error status: {json["status"]?.ToString()}");
                         throw new Exception($"API Error: {json["status"]?.ToString()}");
                     }
                     

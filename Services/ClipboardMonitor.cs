@@ -33,13 +33,18 @@ namespace BoltFetch.Services
                     if (matches.Count > 0)
                     {
                         _lastCapturedText = text;
+                        BoltFetch.Services.Logger.Info($"ClipboardMonitor detected {matches.Count} GoFile links from clipboard.");
                         var links = new string[matches.Count];
                         for (int i = 0; i < matches.Count; i++) links[i] = matches[i].Value;
                         LinksDetected?.Invoke(links);
                     }
                 }
             }
-            catch { /* Clipboard occupied by another process */ }
+            catch (Exception ex)
+            {
+                // Clipboard occupied by another process, or access error
+                BoltFetch.Services.Logger.Warn($"Clipboard accessor failed: {ex.Message}");
+            }
         }
     }
 }

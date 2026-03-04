@@ -358,6 +358,8 @@ namespace BoltFetch
 
                     var items = await _goFileService.GetFolderContents(folderCode);
                     
+                    Services.Logger.Info($"FetchFilesBatch: Retrieved {items.Count} items from GoFile for folder {folderCode}.");
+
                     // Build a HashSet for O(1) duplicate checking safely from the UI thread
                     HashSet<string> existingIds = new HashSet<string>();
                     Dispatcher.Invoke(() => 
@@ -397,15 +399,27 @@ namespace BoltFetch
                         return processedList;
                     });
 
-                    // Add processed items back to the UI collection
-                    Dispatcher.Invoke(() => {
-                        foreach (var displayItem in newDisplayItems)
-                        {
-                            FileItems.Add(displayItem);
-                            totalAdded++;
-                            totalSize += displayItem.Source.Size;
-                        }
-                    });
+                    Services.Logger.Info($"FetchFilesBatch: {newDisplayItems.Count} new distinct items will be added to the UI.");
+
+                    // Add processed items back to the UI collection in chunks to prevent freezing
+                    int chunkSize = 50;
+                    for (int i = 0; i < newDisplayItems.Count; i += chunkSize)
+                    {
+                        var chunk = newDisplayItems.Skip(i).Take(chunkSize).ToList();
+                        
+                        // Use InvokeAsync to yield the UI thread
+                        await Dispatcher.InvokeAsync(() => {
+                            foreach (var displayItem in chunk)
+                            {
+                                FileItems.Add(displayItem);
+                                totalAdded++;
+                                totalSize += displayItem.Source.Size;
+                            }
+                        }, System.Windows.Threading.DispatcherPriority.Background);
+                        
+                        // Give the UI thread a tiny breathing room to process clicks (like the + button)
+                        await Task.Delay(1);
+                    }
                 }
 
                 if (totalAdded > 0)
