@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace BoltFetch.Services
 {
@@ -238,14 +238,16 @@ namespace BoltFetch.Services
         }
 
         #region Persistence
+        private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+
         private static void Load()
         {
             try
             {
                 if (File.Exists(ProfilePath))
                 {
-                    var json = File.ReadAllText(ProfilePath);
-                    _profile = JsonConvert.DeserializeObject<SmartProfile>(json) ?? new SmartProfile();
+                    var bytes = File.ReadAllBytes(ProfilePath);
+                    _profile = JsonSerializer.Deserialize<SmartProfile>(bytes) ?? new SmartProfile();
                 }
             }
             catch { _profile = new SmartProfile(); }
@@ -255,7 +257,8 @@ namespace BoltFetch.Services
         {
             try
             {
-                File.WriteAllText(ProfilePath, JsonConvert.SerializeObject(_profile, Formatting.Indented));
+                var bytes = JsonSerializer.SerializeToUtf8Bytes(_profile, _jsonOptions);
+                File.WriteAllBytes(ProfilePath, bytes);
             }
             catch { }
         }

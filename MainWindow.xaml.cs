@@ -29,7 +29,7 @@ namespace BoltFetch
         private readonly NotificationService _notificationService = new NotificationService();
         private readonly DownloadOrchestrator _orchestrator;
         
-        public ObservableCollection<FileDisplayItem> FileItems { get; } = new ObservableCollection<FileDisplayItem>();
+        public BulkObservableCollection<FileDisplayItem> FileItems { get; } = new BulkObservableCollection<FileDisplayItem>();
 
         private Forms.NotifyIcon? _notifyIcon;
         
@@ -401,25 +401,12 @@ namespace BoltFetch
 
                     Services.Logger.Info($"FetchFilesBatch: {newDisplayItems.Count} new distinct items will be added to the UI.");
 
-                    // Add processed items back to the UI collection in chunks to prevent freezing
-                    int chunkSize = 50;
-                    for (int i = 0; i < newDisplayItems.Count; i += chunkSize)
-                    {
-                        var chunk = newDisplayItems.Skip(i).Take(chunkSize).ToList();
-                        
-                        // Use InvokeAsync to yield the UI thread
-                        await Dispatcher.InvokeAsync(() => {
-                            foreach (var displayItem in chunk)
-                            {
-                                FileItems.Add(displayItem);
-                                totalAdded++;
-                                totalSize += displayItem.Source.Size;
-                            }
-                        }, System.Windows.Threading.DispatcherPriority.Background);
-                        
-                        // Give the UI thread a tiny breathing room to process clicks (like the + button)
-                        await Task.Delay(1);
-                    }
+                    // Add all processed items at once using our new Bulk collection
+                    await Dispatcher.InvokeAsync(() => {
+                        FileItems.AddRange(newDisplayItems);
+                        totalAdded += newDisplayItems.Count;
+                        foreach(var di in newDisplayItems) totalSize += di.Source.Size;
+                    }, System.Windows.Threading.DispatcherPriority.Background);
                 }
 
                 if (totalAdded > 0)

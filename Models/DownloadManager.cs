@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace BoltFetch.Models
 {
@@ -173,8 +173,7 @@ namespace BoltFetch.Models
                 try
                 {
                     var fileLen = new FileInfo(tempPath).Length;
-                    var stateJson = File.ReadAllText(statePath);
-                    var state = JsonConvert.DeserializeObject<List<int>>(stateJson);
+                    var state = Services.SegmentStateTracker.LoadState(statePath);
                     if (state != null)
                     {
                         const long CHUNK_SIZE = 4 * 1024 * 1024;
@@ -280,11 +279,13 @@ namespace BoltFetch.Models
             {
                 try
                 {
-                    var stateJson = File.ReadAllText(statePath);
-                    var state = JsonConvert.DeserializeObject<List<int>>(stateJson);
+                    var state = Services.SegmentStateTracker.LoadState(statePath);
                     if (state != null) completedChunks = new HashSet<int>(state);
                 }
-                catch { }
+                catch (Exception ex) 
+                { 
+                    Services.Logger.Error($"Error checking state for {destinationPath}: {ex.Message}");
+                }
             }
             else if (isResume && !File.Exists(statePath))
             {
@@ -395,8 +396,7 @@ namespace BoltFetch.Models
                                     // Save state periodically (e.g., every 5 chunks or every few seconds)
                                     if (completedChunks.Count % 5 == 0)
                                     {
-                                        var json = JsonConvert.SerializeObject(completedChunks.ToList());
-                                        File.WriteAllText(statePath, json);
+                                        Services.SegmentStateTracker.SaveState(statePath, completedChunks.ToList());
                                     }
                                 }
                             }

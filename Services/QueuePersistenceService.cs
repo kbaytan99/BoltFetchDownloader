@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace BoltFetch.Services
 {
@@ -28,8 +28,8 @@ namespace BoltFetch.Services
         {
             try
             {
-                var json = JsonConvert.SerializeObject(items, Formatting.Indented);
-                File.WriteAllText(QueueFilePath, json);
+                var bytes = JsonSerializer.SerializeToUtf8Bytes(items, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllBytes(QueueFilePath, bytes);
             }
             catch { }
         }
@@ -40,8 +40,8 @@ namespace BoltFetch.Services
             {
                 if (File.Exists(QueueFilePath))
                 {
-                    var json = File.ReadAllText(QueueFilePath);
-                    return JsonConvert.DeserializeObject<List<QueueItemDto>>(json) ?? new List<QueueItemDto>();
+                    var bytes = File.ReadAllBytes(QueueFilePath);
+                    return JsonSerializer.Deserialize<List<QueueItemDto>>(bytes) ?? new List<QueueItemDto>();
                 }
             }
             catch { }

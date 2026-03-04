@@ -4,8 +4,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace BoltFetch.Models
 {
@@ -83,8 +83,8 @@ namespace BoltFetch.Models
                 var response = await _httpClient.PostAsync("https://api.gofile.io/accounts", null);
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
-                var json = JObject.Parse(content);
-                _guestToken = json["data"]?["token"]?.ToString() ?? string.Empty;
+                var json = JsonNode.Parse(content);
+                _guestToken = json?["data"]?["token"]?.ToString() ?? string.Empty;
 
                 if (string.IsNullOrEmpty(_guestToken))
                 {
@@ -134,37 +134,38 @@ namespace BoltFetch.Models
                     stopwatch.Stop();
                     BoltFetch.Services.Logger.Info($"GoFile folder '{folderCode}' returned in {stopwatch.ElapsedMilliseconds} ms. Response length: {content.Length}");
 
-                    var json = JObject.Parse(content);
+                    var json = JsonNode.Parse(content);
                     
-                    if (json["status"]?.ToString() != "ok")
+                    if (json?["status"]?.ToString() != "ok")
                     {
-                        if (json["status"]?.ToString() == "error-auth" && attempt < maxRetries)
+                        if (json?["status"]?.ToString() == "error-auth" && attempt < maxRetries)
                         {
                             BoltFetch.Services.Logger.Warn($"GoFile error-auth status for folder '{folderCode}'.");
                             _guestToken = "";
                             _websiteToken = "";
                             continue;
                         }
-                        BoltFetch.Services.Logger.Error($"GoFile API returned error status: {json["status"]?.ToString()}");
-                        throw new Exception($"API Error: {json["status"]?.ToString()}");
+                        BoltFetch.Services.Logger.Error($"GoFile API returned error status: {json?["status"]?.ToString()}");
+                        throw new Exception($"API Error: {json?["status"]?.ToString()}");
                     }
                     
                     var items = new List<GoFileItem>();
-                    var children = json["data"]?["children"];
+                    var children = json?["data"]?["children"]?.AsObject();
 
                     if (children != null)
                     {
-                        foreach (var child in children.Values())
+                        foreach (var childNode in children)
                         {
-                            if (child["type"]?.ToString() == "file")
+                            var child = childNode.Value;
+                            if (child?["type"]?.ToString() == "file")
                             {
                                 items.Add(new GoFileItem
                                 {
-                                    Id = child["id"]?.ToString() ?? string.Empty,
-                                    Name = child["name"]?.ToString() ?? string.Empty,
-                                    Size = (long?)(child["size"] ?? 0) ?? 0,
-                                    DownloadLink = child["link"]?.ToString() ?? string.Empty,
-                                    Md5 = child["md5"]?.ToString() ?? string.Empty,
+                                    Id = child?["id"]?.ToString() ?? string.Empty,
+                                    Name = child?["name"]?.ToString() ?? string.Empty,
+                                    Size = child?["size"]?.GetValue<long>() ?? 0,
+                                    DownloadLink = child?["link"]?.ToString() ?? string.Empty,
+                                    Md5 = child?["md5"]?.ToString() ?? string.Empty,
                                     Token = _guestToken
                                 });
                             }

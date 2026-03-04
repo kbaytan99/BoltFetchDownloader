@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using BoltFetch.Services;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace BoltFetch
 {
@@ -27,8 +27,8 @@ namespace BoltFetch
 
             try
             {
-                var json = File.ReadAllText(profilePath);
-                var profile = JsonConvert.DeserializeObject<SmartProfile>(json);
+                var bytes = File.ReadAllBytes(profilePath);
+                var profile = JsonSerializer.Deserialize<SmartProfile>(bytes);
                 if (profile?.History == null) return;
 
                 var items = profile.History

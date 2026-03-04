@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace BoltFetch.Models
 {
@@ -24,8 +24,8 @@ namespace BoltFetch.Models
             {
                 if (File.Exists(SettingsFilePath))
                 {
-                    var json = File.ReadAllText(SettingsFilePath);
-                    return JsonConvert.DeserializeObject<UserSettings>(json) ?? new UserSettings();
+                    var bytes = File.ReadAllBytes(SettingsFilePath);
+                    return JsonSerializer.Deserialize<UserSettings>(bytes) ?? new UserSettings();
                 }
             }
             catch { }
@@ -39,8 +39,8 @@ namespace BoltFetch.Models
                 var directory = Path.GetDirectoryName(SettingsFilePath);
                 if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
                 
-                var json = JsonConvert.SerializeObject(settings, Formatting.Indented);
-                File.WriteAllText(SettingsFilePath, json);
+                var bytes = JsonSerializer.SerializeToUtf8Bytes(settings, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllBytes(SettingsFilePath, bytes);
             }
             catch { }
         }
