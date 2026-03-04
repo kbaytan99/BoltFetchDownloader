@@ -131,13 +131,23 @@
             </StackPanel>
             
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button x:Name="AddButton" Style="{StaticResource ModernButton}" Content="+" Width="40" Height="40" Margin="0,0,10,0"
-                        Click="AddButton_Click" Background="#1E293B" Foreground="#3ABEF9" FontWeight="Bold" FontSize="20" ToolTip="Add links manually">
+                <Button x:Name="AddButton" Content="+" Width="46" Height="46" Margin="0,0,15,0"
+                        Click="AddButton_Click" Background="#3ABEF9" Foreground="#0F172A" FontWeight="Bold" FontSize="26" ToolTip="Add links manually" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="20"/>
+                            <Setter Property="CornerRadius" Value="23"/>
                         </Style>
                     </Button.Resources>
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="23">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-4,0,0"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Opacity" Value="0.85"/></Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
                 </Button>
                 
                 <Button x:Name="HistoryButton" Style="{StaticResource ModernButton}" 
@@ -184,10 +194,6 @@
             </StackPanel>
         </DockPanel>
 
-        <!-- No Link Entry Here Anymore. Removed LinkTextBox block. -->
-
-
-        <!-- File List -->
         <!-- File List -->
         <DataGrid x:Name="FilesDataGrid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False"
                   Background="Transparent" RowBackground="Transparent" BorderThickness="0"
@@ -323,9 +329,24 @@
                                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
                                     <TextBlock Text="✕" FontSize="14" FontWeight="Bold" Foreground="#94A3B8"/>
                                 </Button>
+
+                                <Border Width="1" Height="20" Background="#475569" Margin="6,0,6,0" Opacity="0.5" />
+
                                 <Button Width="42" Height="32" Margin="3,0" Click="DeleteItemButton_Click" ToolTip="Delete from disk" Cursor="Hand"
-                                        Background="#7F1D1D" Foreground="#FECACA" BorderThickness="0" FontSize="15">
+                                        Background="#2A1010" Foreground="#F87171" BorderThickness="0" FontSize="15">
                                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Opacity" Value="0.6"/>
+                                            <Style.Triggers>
+                                                <!-- Sadece üzerine tam olarak bilerek gelindiğinde "Tehlike" rengi parlasın -->
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Opacity" Value="1"/>
+                                                    <Setter Property="Background" Value="#7F1D1D"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
                                     <TextBlock Text="🗑" FontSize="13" FontFamily="Segoe UI Emoji"/>
                                 </Button>
                             </StackPanel>
@@ -364,7 +385,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Vertical" Grid.Column="0">
-                    <TextBlock Text="{DynamicResource Loc_SumTotalSize}" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold"/>
+                    <TextBlock Text="{DynamicResource Loc_SumTotalSize}" Foreground="#3ABEF9" FontSize="14" FontWeight="Bold"/>
                     <TextBlock x:Name="TotalSizeText" Text="0.00 GB" FontSize="22" FontWeight="SemiBold" Margin="0,5,0,0" Foreground="#F8FAFC"/>
                 </StackPanel>
                 
@@ -378,15 +399,15 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                            <TextBlock Text="{DynamicResource Loc_SumQueued}" Foreground="#94A3B8" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource Loc_SumQueued}" Foreground="#94A3B8" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
                             <TextBlock x:Name="QueuedCountText" Text="0" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                            <TextBlock Text="{DynamicResource Loc_SumActive}" Foreground="#4ADE80" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource Loc_SumActive}" Foreground="#4ADE80" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
                             <TextBlock x:Name="ActiveCountText" Text="0" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
                         </StackPanel>
                         <StackPanel Grid.Column="4" HorizontalAlignment="Center">
-                            <TextBlock Text="{DynamicResource Loc_SumFinished}" Foreground="#3ABEF9" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource Loc_SumFinished}" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
                             <TextBlock x:Name="FinishedCountText" Text="0" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
                         </StackPanel>
                     </Grid>
@@ -400,18 +421,18 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                            <TextBlock Text="{DynamicResource Loc_SumDownloaded}" Foreground="#4ADE80" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource Loc_SumDownloaded}" Foreground="#4ADE80" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
                             <TextBlock x:Name="DownloadedSizeText" Text="0.00 GB" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                            <TextBlock Text="{DynamicResource Loc_SumRemaining}" Foreground="#F59E0B" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource Loc_SumRemaining}" Foreground="#F59E0B" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
                             <TextBlock x:Name="RemainingSizeText" Text="0.00 GB" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
 
                 <StackPanel Orientation="Vertical" Grid.Column="3" HorizontalAlignment="Right">
-                    <TextBlock Text="{DynamicResource Loc_SumTotalSpeed}" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    <TextBlock Text="{DynamicResource Loc_SumTotalSpeed}" Foreground="#3ABEF9" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right"/>
                     <TextBlock x:Name="TotalSpeedText" Text="0 KB/s" FontSize="22" FontWeight="SemiBold" Margin="0,5,0,0" HorizontalAlignment="Right" Foreground="#F8FAFC"/>
                 </StackPanel>
                 </Grid>
@@ -489,8 +510,12 @@
                             </Button.Template>
                             <TextBlock Text="✖" FontFamily="Segoe UI Emoji" FontSize="17" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#94A3B8"/>
                         </Button>
+                        
+                        <!-- İYİLEŞTİRME: Toplu Silme öncesi mesafe konuldu -->
+                        <Border Width="1" Height="24" Background="#475569" Margin="6,0,12,0" Opacity="0.5" />
+                        
                         <Button x:Name="DeleteAllButton" Width="44" Height="44"
-                                Background="#3B1212" BorderBrush="#7F1D1D" BorderThickness="1" Cursor="Hand"
+                                Background="#2A1010" BorderBrush="#7F1D1D" BorderThickness="1" Cursor="Hand"
                                 Click="DeleteAll_Click" ToolTip="{DynamicResource Loc_BtnDeleteAll}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
@@ -498,10 +523,18 @@
                                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#7F1D1D"/></Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="bg" Property="Background" Value="#7F1D1D"/>
+                                            <Setter TargetName="bg" Property="Opacity" Value="1"/>
+                                        </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Button.Template>
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Opacity" Value="0.6"/>
+                                </Style>
+                            </Button.Style>
                             <TextBlock Text="🗑" FontFamily="Segoe UI Emoji" FontSize="17" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#F87171"/>
                         </Button>
                     </StackPanel>
