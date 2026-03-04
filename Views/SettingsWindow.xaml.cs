@@ -3,7 +3,7 @@ using System.Windows;
 using BoltFetch.Models;
 using Microsoft.Win32;
 
-namespace BoltFetch
+namespace BoltFetch.Views
 {
     public partial class SettingsWindow : Window
     {

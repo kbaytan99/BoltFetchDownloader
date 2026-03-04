@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Windows;
 
-namespace BoltFetch
+namespace BoltFetch.Views
 {
     public partial class AboutWindow : Window
     {

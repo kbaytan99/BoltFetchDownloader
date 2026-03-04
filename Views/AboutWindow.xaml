@@ -1,4 +1,4 @@
-<Window x:Class="BoltFetch.AboutWindow"
+<Window x:Class="BoltFetch.Views.AboutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="{DynamicResource Loc_AboutTitle}" Height="500" Width="650"

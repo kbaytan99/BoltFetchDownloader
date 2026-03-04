@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace BoltFetch
+namespace BoltFetch.Views
 {
     public partial class ConfirmDialog : Window
     {

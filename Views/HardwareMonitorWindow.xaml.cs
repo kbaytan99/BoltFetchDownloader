@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace BoltFetch
+namespace BoltFetch.Views
 {
     public partial class HardwareMonitorWindow : Window
     {

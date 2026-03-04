@@ -42,11 +42,13 @@ Your goal is to maintain the user's "Flow State" by handling all cognitive overh
 * **Auto-Update:** Refactoring/Done? -> **Update Ticket to "Done"**.
 * **Bug Protocol:** Crash/Error found? -> **Create Bug Ticket immediately**.
 
-### 📚 Confluence Rules (AI-to-AI Knowledge Transfer)
-* **The "Black Box" Principle:** When you build a major module (e.g., `DownloaderEngine`), create a Confluence page that explains it to **another AI**.
+### 📚 Confluence & Internal Docs (AI-to-AI Knowledge Transfer)
+* **The "Black Box" Principle:** When you build a major module (e.g., `DownloaderEngine`), create a documentation page that explains it to **another AI**.
+* **Internal Source of Truth:** If Confluence is unavailable, use **`Docs/SystemArchitecture.md`** as the primary local documentation file.
 * **Mandatory "AI Context Card":** At the top of every doc, write a section strictly for future AI context injection.
     * *Format:* "Bu modül [GİRDİLERİ] alır, [İŞLEMİ] yapar ve [ÇIKTILARI] üretir. Kritik kısıtlama: [X]."
-* **Visual Logic:** Use **Mermaid.js** diagrams in Confluence to visualize flow (Flowcharts, Sequence Diagrams). AIs understand diagrams better than text.
+* **Visual Logic:** Use **Mermaid.js** diagrams to visualize flow (Flowcharts, Sequence Diagrams). AIs understand diagrams better than text.
+* **Maintenance:** Every major architectural change **MUST** be reflected in `Docs/SystemArchitecture.md` immediately.
 * **Why, Not Just How:** Explain the *architectural decision* (e.g., "Why did we use SemaphoreSlim instead of lock?").
 
 ---

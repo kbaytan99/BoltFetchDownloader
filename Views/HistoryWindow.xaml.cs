@@ -7,7 +7,7 @@ using System.Windows;
 using BoltFetch.Services;
 using System.Text.Json;
 
-namespace BoltFetch
+namespace BoltFetch.Views
 {
     public partial class HistoryWindow : Window
     {

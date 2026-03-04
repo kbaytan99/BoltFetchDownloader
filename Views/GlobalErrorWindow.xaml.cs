@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Web;
 using System.Reflection;
 
-namespace BoltFetch
+namespace BoltFetch.Views
 {
     public partial class GlobalErrorWindow : Window
     {

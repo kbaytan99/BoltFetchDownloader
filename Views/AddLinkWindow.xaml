@@ -1,4 +1,4 @@
-<Window x:Class="BoltFetch.AddLinkWindow"
+<Window x:Class="BoltFetch.Views.AddLinkWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Add Links" Height="420" Width="620"

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 
-namespace BoltFetch
+namespace BoltFetch.Views
 {
     public partial class AddLinkWindow : Window
     {

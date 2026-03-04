@@ -6,6 +6,7 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using BoltFetch.Services;
+using BoltFetch.Views;
 
 namespace BoltFetch;
 

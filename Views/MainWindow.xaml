@@ -1,9 +1,9 @@
-﻿<Window x:Class="BoltFetch.MainWindow"
+<Window x:Class="BoltFetch.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:BoltFetch"
+        xmlns:local="clr-namespace:BoltFetch.Views"
         xmlns:converters="clr-namespace:BoltFetch.Converters"
         mc:Ignorable="d"
         Title="BoltFetch Downloader" Height="950" Width="1400"
@@ -97,14 +97,14 @@
                 <TextBlock Text="BoltFetch Downloader" FontSize="13" FontWeight="SemiBold" Foreground="#94A3B8" VerticalAlignment="Center"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" WindowChrome.IsHitTestVisibleInChrome="True">
-                <Button Content="—" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="MinimizeBtn_Click" Cursor="Hand">
-                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="—" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,5"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#1E293B"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
+                <Button Content="�" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="MinimizeBtn_Click" Cursor="Hand">
+                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="�" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,5"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#1E293B"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
                 </Button>
-                <Button Content="☐" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="MaximizeBtn_Click" Cursor="Hand">
-                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="☐" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-3,0,0"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#1E293B"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
+                <Button Content="?" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="MaximizeBtn_Click" Cursor="Hand">
+                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="?" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-3,0,0"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#1E293B"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
                 </Button>
-                <Button Content="✕" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="CloseBtn_Click" Cursor="Hand">
-                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="✕" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#E81123"/><Setter Property="Foreground" Value="White"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
+                <Button Content="?" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="CloseBtn_Click" Cursor="Hand">
+                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#E81123"/><Setter Property="Foreground" Value="White"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
                 </Button>
             </StackPanel>
         </Grid>
@@ -155,7 +155,7 @@
                         Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{DynamicResource Loc_BtnHistory}" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#CBD5E1"/>
-                        <TextBlock Text="🕒" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9" FontFamily="Segoe UI Emoji"/>
+                        <TextBlock Text="??" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9" FontFamily="Segoe UI Emoji"/>
                     </StackPanel>
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -169,7 +169,7 @@
                         Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{DynamicResource Loc_BtnMonitor}" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#CBD5E1"/>
-                        <TextBlock Text="📈" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9" FontFamily="Segoe UI Emoji"/>
+                        <TextBlock Text="??" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9" FontFamily="Segoe UI Emoji"/>
                     </StackPanel>
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -183,7 +183,7 @@
                         Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{DynamicResource Loc_BtnSettings}" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#CBD5E1"/>
-                        <TextBlock Text="⚙" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9"/>
+                        <TextBlock Text="?" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9"/>
                     </StackPanel>
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -305,12 +305,12 @@
                                     <Button Width="42" Height="32" Margin="3,0" Click="RetryItemButton_Click" ToolTip="Start / Resume" Cursor="Hand"
                                             Background="#0D9F5F" Foreground="White" BorderThickness="0" FontSize="15">
                                         <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                        <TextBlock Text="▶" FontSize="13" FontFamily="Segoe UI Emoji"/>
+                                        <TextBlock Text="?" FontSize="13" FontFamily="Segoe UI Emoji"/>
                                     </Button>
                                     <Button Width="42" Height="32" Margin="3,0" Click="StopItemButton_Click" ToolTip="Stop" Cursor="Hand"
                                             Background="#B91C1C" Foreground="White" BorderThickness="0" FontSize="15">
                                         <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                        <TextBlock Text="⏹" FontSize="13" FontFamily="Segoe UI Emoji"/>
+                                        <TextBlock Text="?" FontSize="13" FontFamily="Segoe UI Emoji"/>
                                     </Button>
                                 </StackPanel>
                                 
@@ -319,7 +319,7 @@
                                     <Button Width="42" Height="32" Margin="3,0" Click="LocateItemButton_Click" ToolTip="Open File Location" Cursor="Hand"
                                             Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontSize="15">
                                         <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                        <TextBlock Text="📂" FontSize="13" FontFamily="Segoe UI Emoji"/>
+                                        <TextBlock Text="??" FontSize="13" FontFamily="Segoe UI Emoji"/>
                                     </Button>
                                 </StackPanel>
                                 
@@ -327,7 +327,7 @@
                                 <Button Width="42" Height="32" Margin="3,0" Click="RemoveItem_Click" ToolTip="Remove from list" Cursor="Hand"
                                         Background="#334155" Foreground="#94A3B8" BorderThickness="0" FontSize="15">
                                     <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                    <TextBlock Text="✕" FontSize="14" FontWeight="Bold" Foreground="#94A3B8"/>
+                                    <TextBlock Text="?" FontSize="14" FontWeight="Bold" Foreground="#94A3B8"/>
                                 </Button>
 
                                 <Border Width="1" Height="20" Background="#475569" Margin="6,0,6,0" Opacity="0.5" />
@@ -339,7 +339,7 @@
                                         <Style TargetType="Button">
                                             <Setter Property="Opacity" Value="0.6"/>
                                             <Style.Triggers>
-                                                <!-- Sadece üzerine tam olarak bilerek gelindiğinde "Tehlike" rengi parlasın -->
+                                                <!-- Sadece �zerine tam olarak bilerek gelindiginde "Tehlike" rengi parlasin -->
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter Property="Opacity" Value="1"/>
                                                     <Setter Property="Background" Value="#7F1D1D"/>
@@ -347,7 +347,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
-                                    <TextBlock Text="🗑" FontSize="13" FontFamily="Segoe UI Emoji"/>
+                                    <TextBlock Text="??" FontSize="13" FontFamily="Segoe UI Emoji"/>
                                 </Button>
                             </StackPanel>
                         </DataTemplate>
@@ -453,7 +453,7 @@
                     <TextBlock x:Name="ParallelLimitText" Text="3" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" Margin="0,0,16,0"/>
                     <TextBlock Text="{DynamicResource Loc_FooterVersion}" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
                     <TextBlock Text="{DynamicResource Loc_AppVersion}" Foreground="#FFD700" FontSize="12" FontWeight="Bold" Margin="0,0,16,0"/>
-                    <TextBlock Text="🧠" FontFamily="Segoe UI Emoji" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
+                    <TextBlock Text="??" FontFamily="Segoe UI Emoji" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
                     <TextBlock Text="{DynamicResource Loc_SmartEngine}" Foreground="#A78BFA" FontSize="12" FontWeight="SemiBold" Margin="0,0,16,0"/>
                     <TextBlock Text="{DynamicResource Loc_FooterFolder}" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
                     <TextBlock x:Name="PathLabel" Text="..." Foreground="#64748B" FontSize="12" FontWeight="SemiBold"/>
@@ -478,7 +478,7 @@
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Button.Template>
-                            <TextBlock Text="☑" FontFamily="Segoe UI Emoji" FontSize="19" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#94A3B8"/>
+                            <TextBlock Text="?" FontFamily="Segoe UI Emoji" FontSize="19" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#94A3B8"/>
                         </Button>
                         <Button x:Name="StopAllButton" Width="44" Height="44" Margin="0,0,6,0"
                                 Background="#3B1212" BorderBrush="#7F1D1D" BorderThickness="1" Cursor="Hand"
@@ -493,7 +493,7 @@
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Button.Template>
-                            <TextBlock Text="⏹" FontFamily="Segoe UI Emoji" FontSize="19" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#F87171"/>
+                            <TextBlock Text="?" FontFamily="Segoe UI Emoji" FontSize="19" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#F87171"/>
                         </Button>
                         <Button x:Name="RemoveAllButton" Width="44" Height="44" Margin="0,0,6,0"
                                 Background="#1E293B" BorderBrush="#334155" BorderThickness="1" Cursor="Hand"
@@ -508,10 +508,10 @@
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Button.Template>
-                            <TextBlock Text="✖" FontFamily="Segoe UI Emoji" FontSize="17" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#94A3B8"/>
+                            <TextBlock Text="?" FontFamily="Segoe UI Emoji" FontSize="17" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#94A3B8"/>
                         </Button>
                         
-                        <!-- İYİLEŞTİRME: Toplu Silme öncesi mesafe konuldu -->
+                        <!-- IYILESTIRME: Toplu Silme �ncesi mesafe konuldu -->
                         <Border Width="1" Height="24" Background="#475569" Margin="6,0,12,0" Opacity="0.5" />
                         
                         <Button x:Name="DeleteAllButton" Width="44" Height="44"
@@ -535,7 +535,7 @@
                                     <Setter Property="Opacity" Value="0.6"/>
                                 </Style>
                             </Button.Style>
-                            <TextBlock Text="🗑" FontFamily="Segoe UI Emoji" FontSize="17" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#F87171"/>
+                            <TextBlock Text="??" FontFamily="Segoe UI Emoji" FontSize="17" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#F87171"/>
                         </Button>
                     </StackPanel>
 
@@ -566,7 +566,7 @@
                             </ControlTemplate>
                         </Button.Template>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="▶" FontFamily="Segoe UI Emoji" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="?" FontFamily="Segoe UI Emoji" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
                             <TextBlock Text="{DynamicResource Loc_BtnStartSelected}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>

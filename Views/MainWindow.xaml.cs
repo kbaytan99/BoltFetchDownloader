@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -18,7 +18,7 @@ using Microsoft.Win32;
 using System.Reflection;
 using Forms = System.Windows.Forms;
 
-namespace BoltFetch
+namespace BoltFetch.Views
 {
     public partial class MainWindow : Window
     {
@@ -206,7 +206,7 @@ namespace BoltFetch
             var version = Assembly.GetExecutingAssembly()
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "1.0.0";
             if (version.Contains('+')) version = version[..version.IndexOf('+')];
-            var versionPrefix = langCode == "tr" ? "Sürüm" : "Version";
+            var versionPrefix = langCode == "tr" ? "S�r�m" : "Version";
             System.Windows.Application.Current.Resources["Loc_AppVersion"] = $"{versionPrefix} {version}";
 
             // Refresh UI elements that don't auto-update (like DataGrid Headers)
@@ -275,7 +275,7 @@ namespace BoltFetch
                     await Dispatcher.InvokeAsync(() => {
                         FileItems.AddRange(newItems);
                         long totalSize = newItems.Sum(i => i.Source.Size);
-                        _notificationService.ShowPopup($"{newItems.Count} Files Found! 🚀", $"{newItems.Count} files ({FormatSizeGB(totalSize)}) added to the list.");
+                        _notificationService.ShowPopup($"{newItems.Count} Files Found! ??", $"{newItems.Count} files ({FormatSizeGB(totalSize)}) added to the list.");
                     }, System.Windows.Threading.DispatcherPriority.Background);
                 }
             }
@@ -359,7 +359,7 @@ namespace BoltFetch
                 {
                     var title = FindResource("Loc_FileNotFoundTitle") as string ?? "File Not Found";
                     var msg = FindResource("Loc_FileNotFoundMsg") as string ?? "File not found on disk. Remove from list?";
-                    var btnText = (FindResource("Loc_RowRemove") as string ?? "Remove").Replace("✖", "").Trim();
+                    var btnText = (FindResource("Loc_RowRemove") as string ?? "Remove").Replace("?", "").Trim();
 
                     if (ConfirmDialog.Show(this, title, msg, btnText, true))
                     {
