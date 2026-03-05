@@ -1,4 +1,4 @@
-<Window x:Class="BoltFetch.Views.MainWindow"
+ï»¿<Window x:Class="BoltFetch.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,572 +7,72 @@
         xmlns:converters="clr-namespace:BoltFetch.Converters"
         mc:Ignorable="d"
         Title="BoltFetch Downloader" Height="950" Width="1400"
-        MinHeight="700" MinWidth="1100"
+        MinWidth="1100" MinHeight="700"
         WindowStartupLocation="CenterScreen"
-        Icon="Resources/logo.png"
-        Foreground="#E2E8F0"
-        WindowStyle="SingleBorderWindow">
-    <Window.Background>
-        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-            <GradientStop Color="#0F172A" Offset="0"/>
-            <GradientStop Color="#060913" Offset="1"/>
-        </LinearGradientBrush>
-    </Window.Background>
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="35" ResizeBorderThickness="5" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
-    </WindowChrome.WindowChrome>
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
+
     <Window.Resources>
-        <converters:ProgressWidthConverter x:Key="ProgressWidthConverter"/>
-
-        <!-- Premium Thin ScrollBar -->
-        <Style TargetType="ScrollBar">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Width" Value="8"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ScrollBar">
-                        <Border Background="Transparent">
-                            <Track x:Name="PART_Track" IsDirectionReversed="true">
-                                <Track.Thumb>
-                                    <Thumb>
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Border Background="#334155" CornerRadius="4" Margin="2,0"/>
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-                                </Track.Thumb>
-                            </Track>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Modern Button Style with Animation -->
+        <converters:ProgressToAngleConverter x:Key="ProgressToAngleConverter"/>
+        <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
+        <converters:InverseBooleanToVisibilityConverter x:Key="InverseVisibilityConverter"/>
+        
         <Style x:Key="ModernButton" TargetType="Button">
             <Setter Property="Background" Value="#1E293B"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#334155"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="19">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="Background" TargetName="border" Value="#334155"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="true">
-                                <Setter Property="Background" TargetName="border" Value="#0F172A"/>
-                                <Setter Property="RenderTransform" TargetName="border">
-                                    <Setter.Value>
-                                        <ScaleTransform ScaleX="0.97" ScaleY="0.97" CenterX="0.5" CenterY="0.5"/>
-                                    </Setter.Value>
-                                </Setter>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#334155"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </Window.Resources>
-    
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
 
-        <!-- Custom Title Bar -->
-        <Grid Grid.Row="0" Background="#0C1322" WindowChrome.IsHitTestVisibleInChrome="False">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0">
-                <Image Source="Resources/logo.png" Height="18" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"/>
-                <TextBlock Text="BoltFetch Downloader" FontSize="13" FontWeight="SemiBold" Foreground="#94A3B8" VerticalAlignment="Center"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" WindowChrome.IsHitTestVisibleInChrome="True">
-                <Button Content="—" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="MinimizeBtn_Click" Cursor="Hand">
-                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="—" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,5"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#1E293B"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
-                </Button>
-                <Button Content="?" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="MaximizeBtn_Click" Cursor="Hand">
-                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="?" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-3,0,0"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#1E293B"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
-                </Button>
-                <Button Content="?" Width="46" Background="Transparent" Foreground="#94A3B8" BorderThickness="0" Click="CloseBtn_Click" Cursor="Hand">
-                    <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="bg" Background="Transparent"><TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#E81123"/><Setter Property="Foreground" Value="White"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
-                </Button>
-            </StackPanel>
-        </Grid>
-
-        <!-- Content Frame -->
-        <Grid Grid.Row="1" Margin="20">
+    <Border Background="#0F172A" CornerRadius="15" BorderBrush="#1E293B" BorderThickness="1">
+        <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/> <!-- Title Bar -->
+                <RowDefinition Height="*"/>    <!-- Content -->
+                <RowDefinition Height="Auto"/> <!-- Footer -->
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,20">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <Image Source="Resources/logo.png" Height="60" Margin="0,0,15,0" RenderOptions.BitmapScalingMode="HighQuality"/>
-                <TextBlock Text="BoltFetch Downloader" FontSize="32" FontWeight="Bold" Foreground="#3ABEF9" VerticalAlignment="Center">
-                    <TextBlock.Effect>
-                        <DropShadowEffect BlurRadius="15" ShadowDepth="0" Color="#3ABEF9" Opacity="0.4"/>
-                    </TextBlock.Effect>
-                </TextBlock>
-            </StackPanel>
+            <!-- Title Bar -->
+            <Grid Grid.Row="0" Background="#1E293B" Height="40" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="15,0">
+                    <Image Source="/Resources/logo.png" Height="20" Margin="0,0,10,0"/>
+                    <TextBlock Text="BoltFetch Downloader" Foreground="#94A3B8" FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="âˆ’" Style="{StaticResource ModernButton}" Click="MinimizeBtn_Click" Width="40" Background="Transparent"/>
+                    <Button Content="âœ•" Style="{StaticResource ModernButton}" Click="CloseBtn_Click" Width="40" Background="Transparent"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Placeholder Content to get it building -->
+            <Grid Grid.Row="1">
+                <TextBlock Text="Restoring UI..." Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24"/>
+            </Grid>
             
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button x:Name="AddButton" Content="+" Width="46" Height="46" Margin="0,0,15,0"
-                        Click="AddButton_Click" Background="#3ABEF9" Foreground="#0F172A" FontWeight="Bold" FontSize="26" ToolTip="Add links manually" Cursor="Hand">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="23"/>
-                        </Style>
-                    </Button.Resources>
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="23">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-4,0,0"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Opacity" Value="0.85"/></Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-                
-                <Button x:Name="HistoryButton" Style="{StaticResource ModernButton}" 
-                        Width="110" Height="38" Click="HistoryButton_Click" Margin="0,0,10,0"
-                        Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{DynamicResource Loc_BtnHistory}" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#CBD5E1"/>
-                        <TextBlock Text="??" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9" FontFamily="Segoe UI Emoji"/>
-                    </StackPanel>
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="19"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
-                
-                <Button x:Name="MonitorButton" Style="{StaticResource ModernButton}" 
-                        Width="110" Height="38" Click="MonitorButton_Click" Margin="0,0,10,0"
-                        Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{DynamicResource Loc_BtnMonitor}" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#CBD5E1"/>
-                        <TextBlock Text="??" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9" FontFamily="Segoe UI Emoji"/>
-                    </StackPanel>
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="19"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
-                
-                <Button x:Name="SettingsButton" Style="{StaticResource ModernButton}" 
-                        Width="110" Height="38" Click="SettingsButton_Click"
-                        Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{DynamicResource Loc_BtnSettings}" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="#CBD5E1"/>
-                        <TextBlock Text="?" FontSize="16" VerticalAlignment="Center" Foreground="#3ABEF9"/>
-                    </StackPanel>
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="19"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
-            </StackPanel>
-        </DockPanel>
-
-        <!-- File List -->
-        <DataGrid x:Name="FilesDataGrid" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False"
-                  Background="Transparent" RowBackground="Transparent" BorderThickness="0"
-                  HeadersVisibility="Column" SelectionMode="Extended" RowHeight="50" GridLinesVisibility="None"
-                  AllowDrop="True"
-                  PreviewMouseLeftButtonDown="FilesDataGrid_PreviewMouseLeftButtonDown"
-                  MouseMove="FilesDataGrid_MouseMove"
-                  Drop="FilesDataGrid_Drop">
-            <DataGrid.Resources>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="#1E293B"/>
-                    <Setter Property="Foreground" Value="#CBD5E1"/>
-                    <Setter Property="Padding" Value="10,8"/>
-                    <Setter Property="FontSize" Value="13"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                    <Setter Property="BorderThickness" Value="0,0,0,2"/>
-                    <Setter Property="BorderBrush" Value="#3ABEF9"/>
-                </Style>
-                <Style TargetType="DataGridRow">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="BorderBrush" Value="#1E293B"/>
-                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#1E293B"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="#1E3ABEF9"/>
-                            <Setter Property="BorderBrush" Value="#3ABEF9"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-                <Style TargetType="DataGridCell">
-                    <Setter Property="Padding" Value="10,0"/>
-                    <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="DataGridCell">
-                                <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                                    <ContentPresenter VerticalAlignment="Center" SnapsToDevicePixels="True"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                    <Style.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="Foreground" Value="White"/>
-                            <Setter Property="BorderBrush" Value="Transparent"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.Resources>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="{DynamicResource Loc_ColName}" Binding="{Binding Name}" Width="*" IsReadOnly="True" FontSize="14">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-                            <Setter Property="ToolTip" Value="{Binding Name}"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="{DynamicResource Loc_ColSize}" Binding="{Binding SizeFormatted}" Width="Auto" MinWidth="100" IsReadOnly="True" FontSize="13"/>
-                <DataGridTemplateColumn Header="{DynamicResource Loc_ColProgress}" Width="1.5*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Grid Margin="10,0">
-                                <ProgressBar Value="{Binding ProgressValue}" Maximum="100" Height="20" BorderThickness="0">
-                                    <ProgressBar.Template>
-                                        <ControlTemplate TargetType="ProgressBar">
-                                            <Grid>
-                                                <Border Background="#1E293B" CornerRadius="10" ClipToBounds="True"/>
-                                                <Border CornerRadius="10" ClipToBounds="True">
-                                                    <Grid>
-                                                        <Rectangle Fill="#3ABEF9" HorizontalAlignment="Left">
-                                                            <Rectangle.Width>
-                                                                <MultiBinding Converter="{StaticResource ProgressWidthConverter}">
-                                                                    <Binding Path="Value" RelativeSource="{RelativeSource TemplatedParent}"/>
-                                                                    <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Grid}"/>
-                                                                </MultiBinding>
-                                                            </Rectangle.Width>
-                                                        </Rectangle>
-                                                    </Grid>
-                                                </Border>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </ProgressBar.Template>
-                                </ProgressBar>
-                                <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Center" 
-                                           VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="White">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect BlurRadius="2" ShadowDepth="1" Color="Black"/>
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                            </Grid>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="{DynamicResource Loc_ColSpeed}" Binding="{Binding SpeedText}" Width="Auto" MinWidth="110" IsReadOnly="True" FontSize="13"/>
-                <DataGridTextColumn Header="{DynamicResource Loc_ColETA}" Binding="{Binding ETAText}" Width="Auto" MinWidth="90" IsReadOnly="True" FontSize="13"/>
-                <DataGridTextColumn Header="{DynamicResource Loc_ColStatus}" Binding="{Binding Status}" Width="Auto" MinWidth="140" IsReadOnly="True" FontSize="13" Foreground="#AAA"/>
-                <DataGridTemplateColumn Header="{DynamicResource Loc_ColControls}" Width="260">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <!-- Active Download Controls -->
-                                <StackPanel Orientation="Horizontal" Visibility="{Binding IsNotCompleted, Converter={StaticResource BoolToVis}}">
-                                    <Button Width="42" Height="32" Margin="3,0" Click="RetryItemButton_Click" ToolTip="Start / Resume" Cursor="Hand"
-                                            Background="#0D9F5F" Foreground="White" BorderThickness="0" FontSize="15">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                        <TextBlock Text="?" FontSize="13" FontFamily="Segoe UI Emoji"/>
-                                    </Button>
-                                    <Button Width="42" Height="32" Margin="3,0" Click="StopItemButton_Click" ToolTip="Stop" Cursor="Hand"
-                                            Background="#B91C1C" Foreground="White" BorderThickness="0" FontSize="15">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                        <TextBlock Text="?" FontSize="13" FontFamily="Segoe UI Emoji"/>
-                                    </Button>
-                                </StackPanel>
-                                
-                                <!-- File Management Controls (Completed Only) -->
-                                <StackPanel Orientation="Horizontal" Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVis}}">
-                                    <Button Width="42" Height="32" Margin="3,0" Click="LocateItemButton_Click" ToolTip="Open File Location" Cursor="Hand"
-                                            Background="#3ABEF9" Foreground="#0F172A" BorderThickness="0" FontSize="15">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                        <TextBlock Text="??" FontSize="13" FontFamily="Segoe UI Emoji"/>
-                                    </Button>
-                                </StackPanel>
-                                
-                                <!-- Universal Actions -->
-                                <Button Width="42" Height="32" Margin="3,0" Click="RemoveItem_Click" ToolTip="Remove from list" Cursor="Hand"
-                                        Background="#334155" Foreground="#94A3B8" BorderThickness="0" FontSize="15">
-                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                    <TextBlock Text="?" FontSize="14" FontWeight="Bold" Foreground="#94A3B8"/>
-                                </Button>
-
-                                <Border Width="1" Height="20" Background="#475569" Margin="6,0,6,0" Opacity="0.5" />
-
-                                <Button Width="42" Height="32" Margin="3,0" Click="DeleteItemButton_Click" ToolTip="Delete from disk" Cursor="Hand"
-                                        Background="#2A1010" Foreground="#F87171" BorderThickness="0" FontSize="15">
-                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
-                                    <Button.Style>
-                                        <Style TargetType="Button">
-                                            <Setter Property="Opacity" Value="0.6"/>
-                                            <Style.Triggers>
-                                                <!-- Sadece üzerine tam olarak bilerek gelindiginde "Tehlike" rengi parlasin -->
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Opacity" Value="1"/>
-                                                    <Setter Property="Background" Value="#7F1D1D"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                    <TextBlock Text="??" FontSize="13" FontFamily="Segoe UI Emoji"/>
-                                </Button>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-
-        <!-- Summary Footer -->
-        <Border Grid.Row="3" Background="#1E293B" Margin="0,20,0,0" Padding="0" CornerRadius="12" BorderBrush="#334155" BorderThickness="1">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="25" ShadowDepth="10" Color="Black" Opacity="0.5"/>
-            </Border.Effect>
-            <Grid>
-                <!-- Speed Graph Background -->
-                <Border CornerRadius="12" ClipToBounds="True">
-                    <Canvas x:Name="SpeedGraphCanvas" VerticalAlignment="Bottom" Height="80">
-                        <Polygon x:Name="SpeedGraphFill">
-                            <Polygon.Fill>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#333ABEF9" Offset="0"/>
-                                    <GradientStop Color="#003ABEF9" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Polygon.Fill>
-                        </Polygon>
-                        <Polyline x:Name="SpeedGraphLine" Stroke="#3ABEF9" StrokeThickness="2" />
-                    </Canvas>
-                </Border>
-                
-                <Grid Margin="20,15">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Vertical" Grid.Column="0">
-                    <TextBlock Text="{DynamicResource Loc_SumTotalSize}" Foreground="#3ABEF9" FontSize="14" FontWeight="Bold"/>
-                    <TextBlock x:Name="TotalSizeText" Text="0.00 GB" FontSize="22" FontWeight="SemiBold" Margin="0,5,0,0" Foreground="#F8FAFC"/>
-                </StackPanel>
-                
-                <StackPanel Orientation="Vertical" Grid.Column="1" HorizontalAlignment="Center">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="30"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="30"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                            <TextBlock Text="{DynamicResource Loc_SumQueued}" Foreground="#94A3B8" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock x:Name="QueuedCountText" Text="0" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                            <TextBlock Text="{DynamicResource Loc_SumActive}" Foreground="#4ADE80" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock x:Name="ActiveCountText" Text="0" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="4" HorizontalAlignment="Center">
-                            <TextBlock Text="{DynamicResource Loc_SumFinished}" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock x:Name="FinishedCountText" Text="0" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
-                        </StackPanel>
-                    </Grid>
-                </StackPanel>
-
-                <StackPanel Orientation="Vertical" Grid.Column="2" HorizontalAlignment="Center">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="30"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                            <TextBlock Text="{DynamicResource Loc_SumDownloaded}" Foreground="#4ADE80" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock x:Name="DownloadedSizeText" Text="0.00 GB" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                            <TextBlock Text="{DynamicResource Loc_SumRemaining}" Foreground="#F59E0B" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center"/>
-                            <TextBlock x:Name="RemainingSizeText" Text="0.00 GB" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="#F8FAFC"/>
-                        </StackPanel>
-                    </Grid>
-                </StackPanel>
-
-                <StackPanel Orientation="Vertical" Grid.Column="3" HorizontalAlignment="Right">
-                    <TextBlock Text="{DynamicResource Loc_SumTotalSpeed}" Foreground="#3ABEF9" FontSize="14" FontWeight="Bold" HorizontalAlignment="Right"/>
-                    <TextBlock x:Name="TotalSpeedText" Text="0 KB/s" FontSize="22" FontWeight="SemiBold" Margin="0,5,0,0" HorizontalAlignment="Right" Foreground="#F8FAFC"/>
-                </StackPanel>
-                </Grid>
-            </Grid>
-        </Border>
-
-        <!-- Bottom Bar -->
-        <Border Grid.Row="4" Margin="0,12,0,0" Background="#111827" CornerRadius="14" BorderBrush="#1E293B" BorderThickness="1">
-            <Grid Margin="16,10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Info Row -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
-                    <TextBlock Text="{DynamicResource Loc_FooterParallel}" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
-                    <TextBlock x:Name="ParallelLimitText" Text="3" Foreground="#3ABEF9" FontSize="12" FontWeight="Bold" Margin="0,0,16,0"/>
-                    <TextBlock Text="{DynamicResource Loc_FooterVersion}" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
-                    <TextBlock Text="{DynamicResource Loc_AppVersion}" Foreground="#FFD700" FontSize="12" FontWeight="Bold" Margin="0,0,16,0"/>
-                    <TextBlock Text="??" FontFamily="Segoe UI Emoji" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
-                    <TextBlock Text="{DynamicResource Loc_SmartEngine}" Foreground="#A78BFA" FontSize="12" FontWeight="SemiBold" Margin="0,0,16,0"/>
-                    <TextBlock Text="{DynamicResource Loc_FooterFolder}" Foreground="#475569" FontSize="12" Margin="0,0,4,0"/>
-                    <TextBlock x:Name="PathLabel" Text="..." Foreground="#64748B" FontSize="12" FontWeight="SemiBold"/>
-                </StackPanel>
-
-                <!-- Action Toolbar Row -->
-                <Grid Grid.Row="1">
-                    <!-- Left: Secondary Actions -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button x:Name="SelectAllButton" Width="44" Height="44" Margin="0,0,6,0"
-                                Background="#1E293B" BorderBrush="#334155" BorderThickness="1" Cursor="Hand"
-                                Click="SelectAll_Click" ToolTip="{DynamicResource Loc_BtnSelectAll}">
-                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="10"/></Style></Button.Resources>
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#2D3E52"/></Trigger>
-                                        <Trigger Property="IsPressed" Value="True"><Setter TargetName="bg" Property="Background" Value="#0F172A"/></Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                            <TextBlock Text="?" FontFamily="Segoe UI Emoji" FontSize="19" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#94A3B8"/>
-                        </Button>
-                        <Button x:Name="StopAllButton" Width="44" Height="44" Margin="0,0,6,0"
-                                Background="#3B1212" BorderBrush="#7F1D1D" BorderThickness="1" Cursor="Hand"
-                                Click="StopAll_Click" ToolTip="{DynamicResource Loc_BtnStopAll}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#7F1D1D"/></Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                            <TextBlock Text="?" FontFamily="Segoe UI Emoji" FontSize="19" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#F87171"/>
-                        </Button>
-                        <Button x:Name="RemoveAllButton" Width="44" Height="44" Margin="0,0,6,0"
-                                Background="#1E293B" BorderBrush="#334155" BorderThickness="1" Cursor="Hand"
-                                Click="RemoveAll_Click" ToolTip="{DynamicResource Loc_BtnRemoveAll}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="#2D3E52"/></Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                            <TextBlock Text="?" FontFamily="Segoe UI Emoji" FontSize="17" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#94A3B8"/>
-                        </Button>
-                        
-                        <!-- IYILESTIRME: Toplu Silme öncesi mesafe konuldu -->
-                        <Border Width="1" Height="24" Background="#475569" Margin="6,0,12,0" Opacity="0.5" />
-                        
-                        <Button x:Name="DeleteAllButton" Width="44" Height="44"
-                                Background="#2A1010" BorderBrush="#7F1D1D" BorderThickness="1" Cursor="Hand"
-                                Click="DeleteAll_Click" ToolTip="{DynamicResource Loc_BtnDeleteAll}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border x:Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="bg" Property="Background" Value="#7F1D1D"/>
-                                            <Setter TargetName="bg" Property="Opacity" Value="1"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="Opacity" Value="0.6"/>
-                                </Style>
-                            </Button.Style>
-                            <TextBlock Text="??" FontFamily="Segoe UI Emoji" FontSize="17" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#F87171"/>
-                        </Button>
-                    </StackPanel>
-
-                    <!-- Right: Primary Action -->
-                    <Button x:Name="DownloadButton" HorizontalAlignment="Right" Width="200" Height="44"
-                            Foreground="White" BorderThickness="0" FontSize="15" FontWeight="Bold"
-                            Cursor="Hand" Click="DownloadButton_Click"
-                            ToolTip="{DynamicResource Loc_BtnStartSelected}">
-                        <Button.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#0369A1" Offset="0"/>
-                                <GradientStop Color="#0EA5E9" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Button.Background>
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="12">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="bg" Property="Opacity" Value="0.88"/>
-                                    </Trigger>
-                                    <Trigger Property="IsPressed" Value="True">
-                                        <Setter TargetName="bg" Property="Opacity" Value="0.72"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="?" FontFamily="Segoe UI Emoji" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <TextBlock Text="{DynamicResource Loc_BtnStartSelected}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </Grid>
-            </Grid>
-        </Border>
+            <StatusBar Grid.Row="2" Background="#1E293B" Foreground="#94A3B8" Padding="10,5">
+                <StatusBarItem>
+                    <TextBlock x:Name="StatusText" Text="Ready"/>
+                </StatusBarItem>
+            </StatusBar>
         </Grid>
-    </Grid>
+    </Border>
 </Window>
